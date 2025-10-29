@@ -1,0 +1,117 @@
+# ========================
+# Flutter / Dart
+# ========================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+**/doc/api/
+*.lock
+
+# ========================
+# Android (ignore all except gradle & manifest)
+# ========================
+android/**/*
+!android/app/src/main/AndroidManifest.xml
+!android/app/build.gradle
+!android/build.gradle
+!android/gradle.properties
+!android/settings.gradle
+!android/gradle/wrapper/**
+
+# Ignore icons, resources, XMLs, Kotlin, Java, and generated files
+android/app/src/**/*.xml
+android/app/src/**/*.kts
+android/app/src/**/*.java
+android/app/src/**/*.kt
+android/app/src/**/*.txt
+android/app/src/**/*.cc
+android/app/src/**/*.cpp
+android/app/src/**/*.swift
+android/app/src/**/*.png
+android/app/src/**/*.jpg
+android/app/src/**/*.jpeg
+android/app/src/**/*.webp
+android/app/google-services.json
+android/local.properties
+android/.gradle/
+android/app/build/
+
+# ========================
+# iOS (ignore all generated Swift, plist, workspace, and build)
+# ========================
+ios/**/*
+!ios/Runner.xcodeproj/project.pbxproj
+!ios/Podfile
+!ios/Podfile.lock
+
+ios/Flutter/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/.symlinks/
+ios/DerivedData/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/**/*.swift
+ios/**/*.plist
+ios/**/*.txt
+ios/**/*.png
+ios/**/*.jpg
+ios/**/*.webp
+
+# ========================
+# Windows / macOS / Linux
+# ========================
+windows/**
+macos/**
+linux/**
+
+# ========================
+# Node.js / Backend
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+
+# ========================
+# System / Editor
+# ========================
+.idea/
+.vscode/
+.DS_Store
+*.iml
+*.class
+*.log
+*.pyc
+*.swp
+.svn/
+.history/
+.swiftpm/
+
+# ========================
+# Keep only main Flutter source & configs
+# ========================
+!pubspec.yaml
+!pubspec.yml
+!README.md
+!lib/**
+!assets/**
+!test/**
+!web/**
+.metadata
+android/gradle.properties
+android/gradle.properties
+web/favicon.png
+index.html
+web/manifest.json
+web/icons/Icon-192.png
+web/icons/Icon-512.png
+web/icons/Icon-maskable-192.png
+web/icons/Icon-maskable-512.png
+analysis_options.yaml
+README.md

@@ -1,0 +1,27 @@
+name: fluttermob
+description: A new Flutter project.
+
+publish_to: 'none' # Remove this line if publishing
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Google Sign-In for customers
+  google_sign_in: ^6.1.1
+
+  # Cupertino icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
