@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/google_signin_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CustomerLoginPage extends StatefulWidget {
   const CustomerLoginPage({super.key});
@@ -18,11 +20,40 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     final account = await _googleService.signInWithGoogle();
 
     if (account != null) {
-      setState(() {
-        userName = account.displayName;
-        userEmail = account.email;
-        userPhoto = account.photoUrl;
-      });
+      try {
+        // ✅ send to backend
+        final url = Uri.parse("http://localhost:5000/api/customer/google-login");
+        final response = await http.post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "name": account.displayName,
+            "email": account.email,
+            "photoUrl": account.photoUrl,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          setState(() {
+            userName = data['name'] ?? account.displayName;
+            userEmail = data['email'] ?? account.email;
+            userPhoto = data['photoUrl'] ?? account.photoUrl;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("✅ Google Sign-In successful")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("❌ Login failed: ${response.body}")),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("⚠️ Error: $e")),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Google Sign-In failed")),

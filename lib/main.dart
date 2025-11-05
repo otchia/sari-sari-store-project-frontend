@@ -1,9 +1,24 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
+
+import 'pages/home_page.dart';
 import 'pages/customer_login.dart';
 import 'pages/admin_login.dart';
-import 'pages/home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
+  } catch (e) {
+    print('❌ Firebase initialization failed: $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -15,10 +30,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mob Project',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.amber), // yellow theme
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomePage(),            // <- now home page
+        '/': (context) => const HomePage(),
         '/customer-login': (context) => const CustomerLoginPage(),
         '/admin-login': (context) => const AdminLoginPage(),
       },
