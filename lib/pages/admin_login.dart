@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'admin_dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -26,10 +27,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     );
 
     if (response.statusCode == 200) {
+      final res = jsonDecode(response.body);
+
+      // ✅ Navigate to Admin Dashboard after success
+      // If your backend later returns storeName, use that — for now, use username
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AdminDashboardPage(
+            storeName: res['storeName'] ?? usernameController.text,
+          ),
+        ),
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Admin login successful!")),
       );
-      // Navigate to admin dashboard or home here
     } else {
       final res = jsonDecode(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
