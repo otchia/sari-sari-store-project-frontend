@@ -10,13 +10,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // Initialize Firebase
+    // ✅ Initialize Firebase (Web-safe)
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('✅ Firebase initialized successfully');
+    debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
-    print('❌ Firebase initialization failed: $e');
+    debugPrint('❌ Firebase initialization failed: $e');
   }
 
   runApp(const MyApp());
@@ -29,8 +29,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Mob Project',
-      theme: ThemeData(primarySwatch: Colors.amber), // yellow theme
+      title: 'SariSite App',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.amber,
+        ),
+        useMaterial3: true,
+      ),
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),

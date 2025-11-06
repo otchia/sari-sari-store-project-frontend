@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/google_signin_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // 👈 for web detection
 
 class CustomerLoginPage extends StatefulWidget {
   const CustomerLoginPage({super.key});
@@ -11,60 +11,72 @@ class CustomerLoginPage extends StatefulWidget {
 }
 
 class _CustomerLoginPageState extends State<CustomerLoginPage> {
-  final GoogleSignInService _googleService = GoogleSignInService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
   String? userName;
   String? userEmail;
   String? userPhoto;
 
   Future<void> handleGoogleSignIn() async {
-    final account = await _googleService.signInWithGoogle();
+    try {
+      UserCredential userCredential;
 
-    if (account != null) {
-      try {
-        // ✅ send to backend
-        final url = Uri.parse("http://localhost:5000/api/customer/google-login");
-        final response = await http.post(
-          url,
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "name": account.displayName,
-            "email": account.email,
-            "photoUrl": account.photoUrl,
-          }),
+      if (kIsWeb) {
+        // ✅ Web: use popup-based Google Sign-In
+        userCredential = await _auth.signInWithPopup(GoogleAuthProvider());
+      } else {
+        // ✅ Mobile (Android/iOS): use GoogleSignIn package
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) return; // User canceled
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
         );
 
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          setState(() {
-            userName = data['name'] ?? account.displayName;
-            userEmail = data['email'] ?? account.email;
-            userPhoto = data['photoUrl'] ?? account.photoUrl;
-          });
+        userCredential = await _auth.signInWithCredential(credential);
+      }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("✅ Google Sign-In successful")),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("❌ Login failed: ${response.body}")),
-          );
-        }
-      } catch (e) {
+      // ✅ If login succeeded
+      final user = userCredential.user;
+      if (user != null) {
+        setState(() {
+          userName = user.displayName;
+          userEmail = user.email;
+          userPhoto = user.photoURL;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("⚠️ Error: $e")),
+          const SnackBar(content: Text("✅ Google Sign-In successful")),
         );
       }
-    } else {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Google Sign-In failed")),
+        SnackBar(content: Text("❌ Sign-In Error: $e")),
       );
     }
+  }
+
+  Future<void> handleSignOut() async {
+    await _auth.signOut();
+    if (!kIsWeb) {
+      await _googleSignIn.signOut();
+    }
+    setState(() {
+      userName = null;
+      userEmail = null;
+      userPhoto = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8E1), // soft sari-sari yellow
+      backgroundColor: const Color(0xFFFFF8E1),
       appBar: AppBar(
         backgroundColor: const Color(0xFFFFC107),
         title: const Text(
@@ -115,8 +127,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                       style: const TextStyle(color: Colors.black87),
                     ),
                     const SizedBox(height: 24),
-
-                    // Show Google Sign-In button if not logged in
                     if (userName == null)
                       ElevatedButton.icon(
                         onPressed: handleGoogleSignIn,
@@ -142,14 +152,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                             ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            onPressed: () async {
-                              await _googleService.signOut();
-                              setState(() {
-                                userName = null;
-                                userEmail = null;
-                                userPhoto = null;
-                              });
-                            },
+                            onPressed: handleSignOut,
                             icon: const Icon(Icons.logout),
                             label: const Text("Sign out"),
                             style: ElevatedButton.styleFrom(
@@ -164,7 +167,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                           ),
                         ],
                       ),
-
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
