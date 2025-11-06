@@ -15,38 +15,105 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  // 👁️‍🗨️ Add this for password toggle
+  bool _isPasswordVisible = false;
+
   Future<void> loginAdmin() async {
     final url = Uri.parse("http://localhost:5000/api/admin/login");
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "username": usernameController.text,
-        "password": passwordController.text,
-      }),
-    );
 
-    if (response.statusCode == 200) {
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": usernameController.text,
+          "password": passwordController.text,
+        }),
+      );
+
       final res = jsonDecode(response.body);
 
-      // ✅ Navigate to Admin Dashboard after success
-      // If your backend later returns storeName, use that — for now, use username
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AdminDashboardPage(
-            storeName: res['storeName'] ?? usernameController.text,
+      if (response.statusCode == 200) {
+        // ✅ Animated success popup
+        showGeneralDialog(
+          context: context,
+          barrierDismissible: false,
+          barrierLabel: '',
+          transitionDuration: const Duration(milliseconds: 400),
+          pageBuilder: (context, anim1, anim2) {
+            return const SizedBox.shrink();
+          },
+          transitionBuilder: (context, anim1, anim2, child) {
+            return Opacity(
+              opacity: anim1.value,
+              child: Transform.scale(
+                scale: 0.8 + (anim1.value * 0.2),
+                child: Center(
+                  child: Card(
+                    color: Colors.white,
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 80),
+                          SizedBox(height: 16),
+                          Text(
+                            "Login Successful!",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.brown,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Redirecting to your dashboard...",
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+
+        // ⏳ Wait 2 seconds before redirecting
+        await Future.delayed(const Duration(seconds: 2));
+
+        if (mounted) Navigator.of(context).pop();
+
+        // ✅ Navigate to dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminDashboardPage(
+              storeName: res['storeName'] ?? usernameController.text,
+            ),
           ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: ${res['message'] ?? 'Invalid credentials'}"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Network error: $e"),
+          backgroundColor: Colors.redAccent,
         ),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Admin login successful!")),
-      );
-    } else {
-      final res = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${res['message'] ?? 'Failed'}")),
       );
     }
   }
@@ -103,6 +170,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                         style: TextStyle(color: Colors.black87),
                       ),
                       const SizedBox(height: 24),
+
+                      // 🧍 Username Field
                       TextFormField(
                         controller: usernameController,
                         decoration: InputDecoration(
@@ -118,13 +187,28 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                         validator: (value) =>
                             value!.isEmpty ? "Username required" : null,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // 🔐 Password Field with Eye Toggle
                       TextFormField(
                         controller: passwordController,
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           labelText: "Password",
                           prefixIcon: const Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
                           filled: true,
                           fillColor: const Color(0xFFFFF3E0),
                           border: OutlineInputBorder(
@@ -135,7 +219,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                         validator: (value) =>
                             value!.isEmpty ? "Password required" : null,
                       ),
+
                       const SizedBox(height: 24),
+
+                      // 🔘 Login Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -160,7 +247,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // 🔙 Back to Home
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);

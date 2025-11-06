@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // 👈 for web detection
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'customer_dashboard.dart'; // ✅ ensure this path is correct
 
 class CustomerLoginPage extends StatefulWidget {
   const CustomerLoginPage({super.key});
@@ -10,7 +11,8 @@ class CustomerLoginPage extends StatefulWidget {
   State<CustomerLoginPage> createState() => _CustomerLoginPageState();
 }
 
-class _CustomerLoginPageState extends State<CustomerLoginPage> {
+class _CustomerLoginPageState extends State<CustomerLoginPage>
+    with SingleTickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -23,12 +25,10 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
       UserCredential userCredential;
 
       if (kIsWeb) {
-        // ✅ Web: use popup-based Google Sign-In
         userCredential = await _auth.signInWithPopup(GoogleAuthProvider());
       } else {
-        // ✅ Mobile (Android/iOS): use GoogleSignIn package
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) return; // User canceled
+        if (googleUser == null) return;
 
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
@@ -41,7 +41,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
         userCredential = await _auth.signInWithCredential(credential);
       }
 
-      // ✅ If login succeeded
       final user = userCredential.user;
       if (user != null) {
         setState(() {
@@ -50,8 +49,72 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
           userPhoto = user.photoURL;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Google Sign-In successful")),
+        // ✅ Animated success card
+        showGeneralDialog(
+          context: context,
+          barrierDismissible: false,
+          barrierLabel: '',
+          transitionDuration: const Duration(milliseconds: 400),
+          pageBuilder: (context, anim1, anim2) {
+            return const SizedBox.shrink();
+          },
+          transitionBuilder: (context, anim1, anim2, child) {
+            return Opacity(
+              opacity: anim1.value,
+              child: Transform.scale(
+                scale: 0.8 + (anim1.value * 0.2),
+                child: Center(
+                  child: Card(
+                    color: Colors.white,
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 80),
+                          SizedBox(height: 16),
+                          Text(
+                            "Login Successful!",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.brown,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Redirecting to your dashboard...",
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+
+        // ⏳ Wait before redirect
+        await Future.delayed(const Duration(seconds: 2));
+
+        if (mounted) Navigator.of(context).pop(); // close dialog
+
+        // ✅ Go to Dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomerDashboardPage(
+              customerName: user.displayName ?? "Customer",
+              storeName: "Alyn Store", // 🔹 Replace with dynamic store later
+            ),
+          ),
         );
       }
     } catch (e) {
