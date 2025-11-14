@@ -16,7 +16,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
   final TextEditingController passwordController = TextEditingController();
 
   bool loading = false;
-  bool _isPasswordVisible = false; // 👁️ Password toggle
+  bool _isPasswordVisible = false;
 
   Future<void> loginCustomer() async {
     final email = emailController.text.trim();
@@ -43,7 +43,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
       final res = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // ✅ Show success modal
+        // Success Animation
         showGeneralDialog(
           context: context,
           barrierDismissible: false,
@@ -93,7 +93,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
           },
         );
 
-        // Wait 2 seconds before redirect
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) Navigator.of(context).pop();
 
@@ -107,7 +106,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
           ),
         );
       } else {
-        // ❌ Unsuccessful login
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(res["message"] ?? "Invalid credentials"),
@@ -129,7 +127,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8E1),
+      backgroundColor: const Color(0xFFFFF8E1), // Same admin background
       appBar: AppBar(
         backgroundColor: const Color(0xFFFFC107),
         title: const Text(
@@ -148,6 +146,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
             width: 400,
             padding: const EdgeInsets.all(24),
             child: Card(
+              color: Colors.white,
               elevation: 5,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -155,6 +154,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.storefront,
                         size: 80, color: Colors.orangeAccent),
@@ -168,24 +168,43 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // Email
                     TextField(
                       controller: emailController,
-                      decoration: const InputDecoration(
-                        labelText: "Email",
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: "Enter Email",
+                        prefixIcon: const Icon(Icons.email),
+                        filled: true,
+                        fillColor: const Color(0xFFFFF3E0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
+
                     const SizedBox(height: 16),
+
+                    // Password with toggle
                     TextField(
                       controller: passwordController,
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
-                        labelText: "Password",
-                        border: const OutlineInputBorder(),
+                        labelText: "Enter Password",
+                        prefixIcon: const Icon(Icons.lock),
+                        filled: true,
+                        fillColor: const Color(0xFFFFF3E0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                         suffixIcon: IconButton(
-                          icon: Icon(_isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off),
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
                           onPressed: () {
                             setState(() {
                               _isPasswordVisible = !_isPasswordVisible;
@@ -194,20 +213,37 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: loading ? null : loginCustomer,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orangeAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 40, vertical: 14),
+
+                    // Login button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: loading ? null : loginCustomer,
+                        icon: const Icon(Icons.login),
+                        label: loading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text(
+                                "Login",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orangeAccent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
-                      child: loading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("Login"),
                     ),
+
                     const SizedBox(height: 16),
+
+                    // Register link
                     TextButton(
                       onPressed: () {
                         Navigator.push(

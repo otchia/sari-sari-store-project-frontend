@@ -175,7 +175,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       TextFormField(
                         controller: usernameController,
                         decoration: InputDecoration(
-                          labelText: "Username",
+                          labelText: "Enter Username",
                           prefixIcon: const Icon(Icons.person),
                           filled: true,
                           fillColor: const Color(0xFFFFF3E0),
@@ -195,7 +195,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                         controller: passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
-                          labelText: "Password",
+                          labelText: "Enter Password",
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
