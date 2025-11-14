@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'customer_dashboard.dart';
-import 'dart:convert'; // 🔹 needed for jsonEncode/jsonDecode
-import 'package:http/http.dart' as http; // 🔹 needed for http.post
+import 'customer_register.dart';
 
 class CustomerLoginPage extends StatefulWidget {
   const CustomerLoginPage({super.key});
@@ -13,62 +11,39 @@ class CustomerLoginPage extends StatefulWidget {
   State<CustomerLoginPage> createState() => _CustomerLoginPageState();
 }
 
-class _CustomerLoginPageState extends State<CustomerLoginPage>
-    with SingleTickerProviderStateMixin {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-  clientId: "489581687955-64gs1rj29ha4gb1vr0v4i9mdl95rb1pr.apps.googleusercontent.com",
-);
+class _CustomerLoginPageState extends State<CustomerLoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  String? userName;
-  String? userEmail;
-  String? userPhoto;
+  bool loading = false;
+  bool _isPasswordVisible = false; // 👁️ Password toggle
 
-Future<void> handleGoogleSignIn() async {
-  try {
-    UserCredential userCredential;
+  Future<void> loginCustomer() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-    if (kIsWeb) {
-      userCredential = await _auth.signInWithPopup(GoogleAuthProvider());
-    } else {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return;
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("All fields are required")),
       );
-
-      userCredential = await _auth.signInWithCredential(credential);
+      return;
     }
 
-    final user = userCredential.user;
-    if (user != null) {
-      // 🔹 Send Google user info to your backend (no token yet)
+    setState(() => loading = true);
+
+    try {
       final response = await http.post(
         Uri.parse("http://localhost:5000/api/customer/login"),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "name": user.displayName,
-          "email": user.email,
-          "photoUrl": user.photoURL,
-        }),
+        body: jsonEncode({"email": email, "password": password}),
       );
 
+      setState(() => loading = false);
+
+      final res = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final res = jsonDecode(response.body);
-        print("✅ Backend response: $res");
-
-        setState(() {
-          userName = res["customer"]["name"];
-          userEmail = res["customer"]["email"];
-          userPhoto = res["customer"]["photoUrl"];
-        });
-
-        // ✅ Animated success card
+        // ✅ Show success modal
         showGeneralDialog(
           context: context,
           barrierDismissible: false,
@@ -87,12 +62,13 @@ Future<void> handleGoogleSignIn() async {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(24.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.green, size: 80),
+                        children: const [
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 80),
                           SizedBox(height: 16),
                           Text(
                             "Login Successful!",
@@ -117,6 +93,7 @@ Future<void> handleGoogleSignIn() async {
           },
         );
 
+        // Wait 2 seconds before redirect
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) Navigator.of(context).pop();
 
@@ -124,35 +101,29 @@ Future<void> handleGoogleSignIn() async {
           context,
           MaterialPageRoute(
             builder: (context) => CustomerDashboardPage(
-              customerName: res["customer"]["name"] ?? "Customer",
+              customerName: res["customer"]["name"],
               storeName: "Alyn Store",
             ),
           ),
         );
       } else {
-        print("❌ Backend error: ${response.body}");
+        // ❌ Unsuccessful login
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${response.body}")),
+          SnackBar(
+            content: Text(res["message"] ?? "Invalid credentials"),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
+    } catch (e) {
+      setState(() => loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Network error: $e"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("❌ Sign-In Error: $e")),
-    );
-  }
-}
-
-  Future<void> handleSignOut() async {
-    await _auth.signOut();
-    if (!kIsWeb) {
-      await _googleSignIn.signOut();
-    }
-    setState(() {
-      userName = null;
-      userEmail = null;
-      userPhoto = null;
-    });
   }
 
   @override
@@ -177,7 +148,6 @@ Future<void> handleGoogleSignIn() async {
             width: 400,
             padding: const EdgeInsets.all(24),
             child: Card(
-              color: Colors.white,
               elevation: 5,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -185,77 +155,70 @@ Future<void> handleGoogleSignIn() async {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.storefront,
                         size: 80, color: Colors.orangeAccent),
                     const SizedBox(height: 16),
-                    Text(
-                      userName == null
-                          ? "Welcome, Customer!"
-                          : "Welcome, $userName!",
-                      style: const TextStyle(
+                    const Text(
+                      "Welcome, Customer!",
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.brown,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      userName == null
-                          ? "Sign in to access your sari-sari store account."
-                          : userEmail ?? "",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.black87),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: emailController,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: !_isPasswordVisible,
+                      decoration: InputDecoration(
+                        labelText: "Password",
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(_isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 24),
-                    if (userName == null)
-                      ElevatedButton.icon(
-                        onPressed: handleGoogleSignIn,
-                        icon: const Icon(Icons.login),
-                        label: const Text("Sign in with Google"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orangeAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      )
-                    else
-                      Column(
-                        children: [
-                          if (userPhoto != null)
-                            CircleAvatar(
-                              backgroundImage: NetworkImage(userPhoto!),
-                              radius: 40,
-                            ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: handleSignOut,
-                            icon: const Icon(Icons.logout),
-                            label: const Text("Sign out"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.brown,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
+                    ElevatedButton(
+                      onPressed: loading ? null : loginCustomer,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 40, vertical: 14),
                       ),
+                      child: loading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Login"),
+                    ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const CustomerRegisterPage()),
+                        );
                       },
                       child: const Text(
-                        "Back to Home",
+                        "Don't have an account? Register",
                         style: TextStyle(color: Colors.brown),
                       ),
                     ),

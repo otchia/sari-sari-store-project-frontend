@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/customer_navbar.dart'; // make sure you created this file
+import 'customer_login.dart';
 
 class CustomerDashboardPage extends StatefulWidget {
   final String customerName;
@@ -31,19 +32,25 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8E1),
 
-      // ✅ TOP NAVBAR
-      appBar: CustomerNavbar(
-        storeName: widget.storeName,
-        onCartPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("🛒 Cart feature coming soon!")),
-          );
-        },
-        onSortPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("📂 Sort feature coming soon!")),
-          );
-        },
+      // ✅ TOP NAVBAR WITHOUT BACK BUTTON
+      appBar: AppBar(
+        automaticallyImplyLeading: false, // ❌ Removes the default back button
+        toolbarHeight: kToolbarHeight,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: CustomerNavbar(
+          storeName: widget.storeName,
+          onCartPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("🛒 Cart feature coming soon!")),
+            );
+          },
+          onSortPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("📂 Sort feature coming soon!")),
+            );
+          },
+        ),
       ),
 
       body: Row(
@@ -66,7 +73,11 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                   padding: const EdgeInsets.only(bottom: 20),
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const CustomerLoginPage()),
+                      );
                     },
                     icon: const Icon(Icons.logout),
                     label: const Text("Logout"),
@@ -97,7 +108,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  // ✅ Sidebar button builder
+  // Sidebar button builder
   Widget _buildNavButton(int index, String label) {
     final bool isSelected = selectedIndex == index;
 
@@ -124,15 +135,14 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         style: TextButton.styleFrom(
           backgroundColor:
               isSelected ? const Color(0xFFFFECB3) : Colors.transparent,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
       ),
     );
   }
 
-  // ✅ Icon mapping for each label
+  // Icon mapping for each label
   IconData _getIconForLabel(String label) {
     switch (label) {
       case "Account Settings":
@@ -150,7 +160,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     }
   }
 
-  // ✅ Main content switching
+  // Main content switching
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
@@ -168,7 +178,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     }
   }
 
-  // ✅ Welcome section
+  // Welcome section
   Widget _welcomeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +200,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  // ✅ Placeholder for pages
+  // Placeholder for pages
   Widget _placeholderPage(String title) {
     return Center(
       child: Text(
