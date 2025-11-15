@@ -54,7 +54,7 @@ class HomePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         const Text(
-                          "Sign in using your Google account to start shopping and tracking your purchases.",
+                          "You must have an account to start shopping and tracking your purchases.",
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.black87),
                         ),
