@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/admin_inventory.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   final String storeName;
@@ -114,8 +115,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         style: TextButton.styleFrom(
           backgroundColor:
               isSelected ? const Color(0xFFFFECB3) : Colors.transparent,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
       ),
@@ -148,7 +148,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       case 1:
         return _placeholderPage("Orders");
       case 2:
-        return _placeholderPage("Inventory");
+        return AdminInventory();
       case 3:
         return _placeholderPage("Chat");
       case 4:
