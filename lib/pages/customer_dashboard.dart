@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/customer_navbar.dart'; // make sure you created this file
+import '../widgets/customer_navbar.dart';
 import 'customer_login.dart';
 
 class CustomerDashboardPage extends StatefulWidget {
@@ -34,7 +34,6 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
 
       // ✅ TOP NAVBAR WITHOUT BACK BUTTON
       appBar: AppBar(
-        automaticallyImplyLeading: false, // ❌ Removes the default back button
         toolbarHeight: kToolbarHeight,
         backgroundColor: Colors.transparent,
         elevation: 0,

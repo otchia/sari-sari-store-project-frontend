@@ -46,6 +46,59 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     super.dispose();
   }
 
+  // ---------------- SUCCESS MODAL ----------------
+  void _showSuccessModal() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: '',
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, anim1, anim2) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return Opacity(
+          opacity: anim1.value,
+          child: Transform.scale(
+            scale: 0.8 + (anim1.value * 0.2),
+            child: Center(
+              child: Card(
+                color: Colors.white,
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.check_circle, color: Colors.green, size: 80),
+                      SizedBox(height: 16),
+                      Text(
+                        "Login Successful!",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.brown,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        "Redirecting to your dashboard...",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // ---------------- Email/Password login ----------------
   Future<void> loginCustomer() async {
     final email = emailController.text.trim();
@@ -69,7 +122,13 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       setState(() => loading = false);
 
       final res = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
+        // SHOW SUCCESS MODAL
+        _showSuccessModal();
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) Navigator.of(context).pop();
+
         _navigateToDashboard(res["customer"]);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +168,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
         if (googleUser == null) {
           setState(() => loading = false);
-          return; // user cancelled
+          return;
         }
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
@@ -132,7 +191,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       final email = user.email ?? "";
       final photoUrl = user.photoURL ?? "";
 
-      // 1) Try Google login
+      // BACKEND LOGIN
       final loginResp = await http.post(
         Uri.parse("http://localhost:5000/api/customer/google-login"),
         headers: {"Content-Type": "application/json"},
@@ -141,12 +200,17 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
       if (loginResp.statusCode == 200) {
         final res = jsonDecode(loginResp.body);
-        setState(() => loading = false);
+
+        // SUCCESS MODAL
+        _showSuccessModal();
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) Navigator.of(context).pop();
+
         _navigateToDashboard(res["customer"]);
         return;
       }
 
-      // 2) If not found (404) -> register
+      // REGISTER IF NOT FOUND
       if (loginResp.statusCode == 404) {
         final registerResp = await http.post(
           Uri.parse("http://localhost:5000/api/customer/google-register"),
@@ -157,18 +221,17 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
         if (registerResp.statusCode == 201 || registerResp.statusCode == 200) {
           final res = jsonDecode(registerResp.body);
-          setState(() => loading = false);
+
+          // SUCCESS MODAL
+          _showSuccessModal();
+          await Future.delayed(const Duration(seconds: 2));
+          if (mounted) Navigator.of(context).pop();
+
           _navigateToDashboard(res["customer"]);
-          return;
-        } else {
-          setState(() => loading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Register error: ${registerResp.body}")));
           return;
         }
       }
 
-      // Other errors
       setState(() => loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Login error: ${loginResp.body}")));
@@ -202,30 +265,44 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       child: AnimatedBuilder(
         animation: _googleBtnScale,
         builder: (context, child) {
-          return Transform.scale(scale: _googleBtnScale.value, child: child);
+          return Transform.scale(
+            scale: _googleBtnScale.value,
+            child: child,
+          );
         },
         child: Container(
           width: double.infinity,
           height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.black12),
             boxShadow: const [
               BoxShadow(
-                  color: Color(0x11000000), blurRadius: 6, offset: Offset(0, 2))
+                color: Color(0x22000000),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.g_mobiledata, color: Colors.redAccent),
-              SizedBox(width: 10),
-              Text('Sign in with Google',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.brown,
-                      fontWeight: FontWeight.w600)),
+            children: [
+              Image.asset(
+                "assets/images/google_logo.png",
+                height: 26,
+                width: 26,
+              ),
+              const SizedBox(width: 14),
+              const Text(
+                "Sign in with Google",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -337,10 +414,12 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 12),
 
                     // Google sign-in button
                     _buildGoogleButton(),
+
                     const SizedBox(height: 16),
 
                     // Register link
