@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import 'customer_login.dart';
 
@@ -163,7 +164,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        return _welcomeSection();
+        return CustomerShop();
       case 1:
         return _placeholderPage("Wishlist");
       case 2:

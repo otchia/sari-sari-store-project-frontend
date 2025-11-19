@@ -71,6 +71,22 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
                   style: TextStyle(color: Colors.brown),
                 ),
               ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Account Settings coming soon!"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.account_circle, color: Colors.brown),
+                label: const Text(
+                  "Account",
+                  style: TextStyle(color: Colors.brown),
+                ),
+              ),
             ],
           ),
         ],
