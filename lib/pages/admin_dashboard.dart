@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/admin_inventory.dart';
+import '../widgets/admin_store_settings.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   final String storeName;
@@ -144,7 +145,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        return _buildStoreStatus();
+        return AdminStoreSettings();
       case 1:
         return _placeholderPage("Orders");
       case 2:
