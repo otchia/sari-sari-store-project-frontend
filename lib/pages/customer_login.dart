@@ -54,9 +54,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       barrierDismissible: false,
       barrierLabel: '',
       transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (context, anim1, anim2) {
-        return const SizedBox.shrink();
-      },
+      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
       transitionBuilder: (context, anim1, anim2, child) {
         return Opacity(
           opacity: anim1.value,
@@ -125,11 +123,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       final res = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // SHOW SUCCESS MODAL
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) Navigator.of(context).pop();
-
         _navigateToDashboard(res["customer"]);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,6 +156,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
   Future<void> handleGoogleSignIn() async {
     setState(() => loading = true);
+
     try {
       UserCredential userCredential;
 
@@ -188,9 +185,17 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         return;
       }
 
-      final name = user.displayName ?? "";
-      final email = user.email ?? "";
-      final photoUrl = user.photoURL ?? "";
+      // Safely convert values to String
+      final name = (user.displayName ?? "").toString();
+      final email = (user.email ?? "").toString();
+      final photoUrl = (user.photoURL ?? "").toString();
+
+      if (email.isEmpty) {
+        setState(() => loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Google account has no email")));
+        return;
+      }
 
       // BACKEND LOGIN
       final loginResp = await http.post(
@@ -201,12 +206,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
       if (loginResp.statusCode == 200) {
         final res = jsonDecode(loginResp.body);
-
-        // SUCCESS MODAL
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) Navigator.of(context).pop();
-
         _navigateToDashboard(res["customer"]);
         return;
       }
@@ -222,12 +224,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
         if (registerResp.statusCode == 201 || registerResp.statusCode == 200) {
           final res = jsonDecode(registerResp.body);
-
-          // SUCCESS MODAL
           _showSuccessModal();
           await Future.delayed(const Duration(seconds: 2));
           if (mounted) Navigator.of(context).pop();
-
           _navigateToDashboard(res["customer"]);
           return;
         }
@@ -245,14 +244,20 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
   // ---------------- Navigate to Dashboard ----------------
   void _navigateToDashboard(dynamic customer) {
-    // Save userId to localStorage
-    html.window.localStorage['customerId'] = customer["_id"];
+    final customerId = customer?["_id"]?.toString() ?? "";
+    final customerName =
+        (customer?["name"] ?? customer?["email"] ?? "Customer").toString();
+
+    // Save userId to localStorage safely
+    if (customerId.isNotEmpty) {
+      html.window.localStorage['customerId'] = customerId;
+    }
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => CustomerDashboardPage(
-          customerName: customer["name"] ?? customer["email"] ?? "Customer",
+          customerName: customerName,
           storeName: "Alyn's Store",
         ),
       ),
@@ -354,7 +359,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                           color: Colors.brown),
                     ),
                     const SizedBox(height: 24),
-
                     // Email field
                     TextField(
                       controller: emailController,
@@ -370,7 +374,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     // Password field
                     TextField(
                       controller: passwordController,
@@ -396,7 +399,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                       ),
                     ),
                     const SizedBox(height: 20),
-
                     // Email/Password login button
                     SizedBox(
                       width: double.infinity,
@@ -418,14 +420,10 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
                     // Google sign-in button
                     _buildGoogleButton(),
-
                     const SizedBox(height: 16),
-
                     // Register link
                     TextButton(
                       onPressed: () {
