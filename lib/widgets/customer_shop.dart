@@ -3,7 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class CustomerShop extends StatefulWidget {
-  const CustomerShop({super.key});
+  final String searchQuery; // 🔍 SEARCH INPUT FROM NAVBAR
+
+  const CustomerShop({
+    super.key,
+    required this.searchQuery,
+  });
 
   @override
   State<CustomerShop> createState() => _CustomerShopState();
@@ -11,6 +16,7 @@ class CustomerShop extends StatefulWidget {
 
 class _CustomerShopState extends State<CustomerShop> {
   List<dynamic> products = [];
+  List<dynamic> filteredProducts = []; // 🔍 FILTERED LIST
   bool loading = true;
 
   // Each product will have its own quantity
@@ -40,7 +46,7 @@ class _CustomerShopState extends State<CustomerShop> {
           products = fetched;
           loading = false;
 
-          // Initialize quantities (default = 1 per product)
+          // Initialize quantities (default = 1)
           for (int i = 0; i < products.length; i++) {
             quantities[i] = 1;
           }
@@ -49,8 +55,8 @@ class _CustomerShopState extends State<CustomerShop> {
         setState(() => loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text("Failed to fetch products: ${response.statusCode}")),
+            content: Text("Failed to fetch products: ${response.statusCode}"),
+          ),
         );
       }
     } catch (e) {
@@ -71,6 +77,14 @@ class _CustomerShopState extends State<CustomerShop> {
       return const Center(child: Text("No products available"));
     }
 
+    // 🔍 APPLY SEARCH FILTER HERE
+    filteredProducts = products.where((product) {
+      final name = product['name']?.toString().toLowerCase() ?? '';
+      final query = widget.searchQuery.toLowerCase();
+
+      return name.contains(query);
+    }).toList();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: GridView.builder(
@@ -81,9 +95,11 @@ class _CustomerShopState extends State<CustomerShop> {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),
-        itemCount: products.length,
+
+        // 🔍 USE FILTERED LIST
+        itemCount: filteredProducts.length,
         itemBuilder: (context, index) {
-          final product = products[index] as Map<String, dynamic>;
+          final product = filteredProducts[index] as Map<String, dynamic>;
 
           final imageUrl = (product['imageUrl'] as String?) ??
               (product['image'] as String?) ??
@@ -98,7 +114,7 @@ class _CustomerShopState extends State<CustomerShop> {
           final category = product['category'] ?? '';
           final stock = product['stock']?.toString() ?? '0';
 
-          // Quantity for this card
+          // Quantity for this filtered card
           int qty = quantities[index] ?? 1;
 
           return Card(
@@ -174,7 +190,7 @@ class _CustomerShopState extends State<CustomerShop> {
 
                       const SizedBox(height: 10),
 
-                      // 🔥 QUANTITY SELECTOR
+                      // 🔥 Quantity selector
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

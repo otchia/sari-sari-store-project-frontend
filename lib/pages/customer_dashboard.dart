@@ -20,8 +20,11 @@ class CustomerDashboardPage extends StatefulWidget {
 class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   int selectedIndex = 0;
 
+  // 🔍 Search text from navbar
+  String searchQuery = "";
+
   final List<String> menuItems = [
-    "Account Settings",
+    "Shop",
     "Wishlist",
     "Purchase History",
     "Order Status",
@@ -32,30 +35,38 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8E1),
-
-      // ✅ TOP NAVBAR WITHOUT BACK BUTTON
       appBar: AppBar(
         toolbarHeight: kToolbarHeight,
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: CustomerNavbar(
           storeName: widget.storeName,
+
+          // 🛒 Cart
           onCartPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("🛒 Cart feature coming soon!")),
             );
           },
+
+          // 📂 Sort
           onSortPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("📂 Sort feature coming soon!")),
             );
           },
+
+          // 🔍 Updates searchQuery every time user types
+          onSearchChanged: (value) {
+            setState(() {
+              searchQuery = value;
+            });
+          },
         ),
       ),
-
       body: Row(
         children: [
-          // ✅ SIDE NAVIGATION BAR
+          // LEFT SIDEBAR MENU
           Container(
             width: 220,
             color: const Color(0xFFFFC107),
@@ -69,6 +80,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       _buildNavButton(i, menuItems[i]),
                   ],
                 ),
+
+                // LOGOUT BUTTON
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: ElevatedButton.icon(
@@ -76,7 +89,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const CustomerLoginPage()),
+                          builder: (context) => const CustomerLoginPage(),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.logout),
@@ -96,7 +110,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
             ),
           ),
 
-          // ✅ MAIN CONTENT AREA
+          // RIGHT SIDE CONTENT
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -135,7 +149,9 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         style: TextButton.styleFrom(
           backgroundColor:
               isSelected ? const Color(0xFFFFECB3) : Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
       ),
@@ -145,8 +161,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   // Icon mapping for each label
   IconData _getIconForLabel(String label) {
     switch (label) {
-      case "Account Settings":
-        return Icons.person;
+      case "Shop":
+        return Icons.storefront;
       case "Wishlist":
         return Icons.favorite;
       case "Purchase History":
@@ -164,7 +180,9 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        return CustomerShop();
+        // 🛍 Pass searchQuery to CustomerShop
+        return CustomerShop(searchQuery: searchQuery);
+
       case 1:
         return _placeholderPage("Wishlist");
       case 2:
@@ -173,12 +191,13 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         return _placeholderPage("Order Status");
       case 4:
         return _placeholderPage("Chat with Admin");
+
       default:
         return _welcomeSection();
     }
   }
 
-  // Welcome section
+  // Welcome page
   Widget _welcomeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,16 +210,11 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
             color: Colors.brown,
           ),
         ),
-        const SizedBox(height: 20),
-        const Text(
-          "Use the sidebar to manage your account, view your wishlist, check your orders, or chat with the admin.",
-          style: TextStyle(fontSize: 16, color: Colors.black87),
-        ),
       ],
     );
   }
 
-  // Placeholder for pages
+  // Placeholder pages
   Widget _placeholderPage(String title) {
     return Center(
       child: Text(
