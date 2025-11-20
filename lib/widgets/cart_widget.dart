@@ -96,6 +96,36 @@ class _CartWidgetState extends State<CartWidget> {
     } catch (_) {}
   }
 
+  Future<void> checkout() async {
+    final userId = html.window.localStorage['customerId'];
+    if (userId == null) return;
+
+    try {
+      final res = await http.post(
+        Uri.parse("http://localhost:5000/api/cart/checkout"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"userId": userId}),
+      );
+
+      if (res.statusCode == 200) {
+        fetchCart();
+        cartNotifier.value++;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Checkout successful!")),
+        );
+      } else {
+        final decoded = jsonDecode(res.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(decoded['message'] ?? "Checkout failed")),
+        );
+      }
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error during checkout")),
+      );
+    }
+  }
+
   double get total {
     double t = 0;
     for (var item in cartItems) {
@@ -186,7 +216,7 @@ class _CartWidgetState extends State<CartWidget> {
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         ElevatedButton(
-                            onPressed: () {}, child: const Text("Checkout"))
+                            onPressed: checkout, child: const Text("Checkout"))
                       ],
                     ),
                   ],
