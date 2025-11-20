@@ -3,11 +3,13 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class CustomerShop extends StatefulWidget {
-  final String searchQuery; // 🔍 SEARCH INPUT FROM NAVBAR
+  final String searchQuery; // 🔍 Search input from navbar
+  final String? selectedCategory; // 🏷️ Category filter
 
   const CustomerShop({
     super.key,
     required this.searchQuery,
+    this.selectedCategory,
   });
 
   @override
@@ -16,7 +18,7 @@ class CustomerShop extends StatefulWidget {
 
 class _CustomerShopState extends State<CustomerShop> {
   List<dynamic> products = [];
-  List<dynamic> filteredProducts = []; // 🔍 FILTERED LIST
+  List<dynamic> filteredProducts = []; // 🔹 Filtered products list
   bool loading = true;
 
   // Each product will have its own quantity
@@ -77,12 +79,20 @@ class _CustomerShopState extends State<CustomerShop> {
       return const Center(child: Text("No products available"));
     }
 
-    // 🔍 APPLY SEARCH FILTER HERE
+    // 🔹 Apply search + category filter
     filteredProducts = products.where((product) {
       final name = product['name']?.toString().toLowerCase() ?? '';
       final query = widget.searchQuery.toLowerCase();
 
-      return name.contains(query);
+      final matchesSearch = name.contains(query);
+
+      final category = product['category']?.toString() ?? '';
+      final matchesCategory =
+          (widget.selectedCategory == null || widget.selectedCategory == "All")
+              ? true
+              : category == widget.selectedCategory;
+
+      return matchesSearch && matchesCategory;
     }).toList();
 
     return Padding(
@@ -95,8 +105,6 @@ class _CustomerShopState extends State<CustomerShop> {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),
-
-        // 🔍 USE FILTERED LIST
         itemCount: filteredProducts.length,
         itemBuilder: (context, index) {
           final product = filteredProducts[index] as Map<String, dynamic>;
@@ -114,7 +122,6 @@ class _CustomerShopState extends State<CustomerShop> {
           final category = product['category'] ?? '';
           final stock = product['stock']?.toString() ?? '0';
 
-          // Quantity for this filtered card
           int qty = quantities[index] ?? 1;
 
           return Card(
@@ -169,7 +176,6 @@ class _CustomerShopState extends State<CustomerShop> {
                         style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                       const SizedBox(height: 8),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -187,7 +193,6 @@ class _CustomerShopState extends State<CustomerShop> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 10),
 
                       // 🔥 Quantity selector
@@ -219,9 +224,7 @@ class _CustomerShopState extends State<CustomerShop> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 8),
-
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(

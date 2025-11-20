@@ -23,12 +23,25 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   // 🔍 Search text from navbar
   String searchQuery = "";
 
+  // 🟢 Selected category filter
+  String selectedCategory = "All";
+
   final List<String> menuItems = [
     "Shop",
     "Wishlist",
     "Purchase History",
     "Order Status",
     "Chat",
+  ];
+
+  // 🔹 Example categories (you can fetch dynamically from products if needed)
+  final List<String> categories = [
+    "All",
+    "Beverages",
+    "Snacks",
+    "Household",
+    "Personal Care",
+    "Other",
   ];
 
   @override
@@ -49,11 +62,9 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
             );
           },
 
-          // 📂 Sort
+          // 📂 Sort by Category
           onSortPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("📂 Sort feature coming soon!")),
-            );
+            _showCategoryDialog();
           },
 
           // 🔍 Updates searchQuery every time user types
@@ -180,8 +191,11 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        // 🛍 Pass searchQuery to CustomerShop
-        return CustomerShop(searchQuery: searchQuery);
+        // 🛍 Pass searchQuery + selectedCategory to CustomerShop
+        return CustomerShop(
+          searchQuery: searchQuery,
+          selectedCategory: selectedCategory,
+        );
 
       case 1:
         return _placeholderPage("Wishlist");
@@ -225,6 +239,37 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+
+  // 🔹 CATEGORY DIALOG
+  void _showCategoryDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Select Category"),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final cat = categories[index];
+                return ListTile(
+                  title: Text(cat),
+                  onTap: () {
+                    setState(() {
+                      selectedCategory = cat;
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
