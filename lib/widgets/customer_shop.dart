@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:html' as html; // ⭐ Needed for localStorage (Web)
+import '../globals.dart'; // 🔹 Import the cartNotifier
 
 class CustomerShop extends StatefulWidget {
-  final String searchQuery; // 🔍 Search input from navbar
-  final String? selectedCategory; // 🏷️ Category filter
+  final String searchQuery;
+  final String? selectedCategory;
 
   const CustomerShop({
     super.key,
@@ -18,11 +20,10 @@ class CustomerShop extends StatefulWidget {
 
 class _CustomerShopState extends State<CustomerShop> {
   List<dynamic> products = [];
-  List<dynamic> filteredProducts = []; // 🔹 Filtered products list
+  List<dynamic> filteredProducts = [];
   bool loading = true;
 
-  // Each product will have its own quantity
-  Map<int, int> quantities = {};
+  Map<String, int> quantities = {}; // key = productId
 
   @override
   void initState() {
@@ -48,17 +49,18 @@ class _CustomerShopState extends State<CustomerShop> {
           products = fetched;
           loading = false;
 
-          // Initialize quantities (default = 1)
-          for (int i = 0; i < products.length; i++) {
-            quantities[i] = 1;
+          // Default quantities = 1 for each product by _id
+          for (var product in products) {
+            final productId = product['_id'] ?? '';
+            if (productId.isNotEmpty) quantities[productId] = 1;
           }
         });
       } else {
         setState(() => loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to fetch products: ${response.statusCode}"),
-          ),
+              content:
+                  Text("Failed to fetch products: ${response.statusCode}")),
         );
       }
     } catch (e) {
@@ -69,17 +71,57 @@ class _CustomerShopState extends State<CustomerShop> {
     }
   }
 
+  // ⭐ ADD TO CART FUNCTION
+  Future<void> addToCart(String productId, int qty) async {
+    final String? userId = html.window.localStorage['customerId'];
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in!")),
+      );
+      return;
+    }
+
+    final url = Uri.parse("http://localhost:5000/api/cart/add");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "userId": userId,
+          "productId": productId,
+          "quantity": qty,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Added $qty item(s) to cart")),
+        );
+
+        // 🔹 Update the global cart notifier
+        cartNotifier.value++;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  "Failed to add to cart: ${response.statusCode} — ${response.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error adding to cart: $e")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (products.isEmpty) {
+    if (loading) return const Center(child: CircularProgressIndicator());
+    if (products.isEmpty)
       return const Center(child: Text("No products available"));
-    }
 
-    // 🔹 Apply search + category filter
     filteredProducts = products.where((product) {
       final name = product['name']?.toString().toLowerCase() ?? '';
       final query = widget.searchQuery.toLowerCase();
@@ -108,21 +150,13 @@ class _CustomerShopState extends State<CustomerShop> {
         itemCount: filteredProducts.length,
         itemBuilder: (context, index) {
           final product = filteredProducts[index] as Map<String, dynamic>;
-
-          final imageUrl = (product['imageUrl'] as String?) ??
-              (product['image'] as String?) ??
-              '';
-
-          double price = 0.0;
-          if (product['price'] != null) {
-            price = double.tryParse(product['price'].toString()) ?? 0.0;
-          }
-
-          final name = product['name'] ?? 'Unnamed product';
+          final productId = product['_id'] ?? '';
+          final imageUrl = product['imageUrl'] ?? '';
+          final name = product['name'] ?? 'Unnamed Product';
           final category = product['category'] ?? '';
           final stock = product['stock']?.toString() ?? '0';
-
-          int qty = quantities[index] ?? 1;
+          final price = double.tryParse(product['price'].toString()) ?? 0.0;
+          final qty = quantities[productId] ?? 1;
 
           return Card(
             elevation: 3,
@@ -140,13 +174,6 @@ class _CustomerShopState extends State<CustomerShop> {
                             imageUrl,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[200],
-                                alignment: Alignment.center,
-                                child: const Icon(Icons.broken_image, size: 40),
-                              );
-                            },
                           )
                         : Container(
                             color: Colors.grey[200],
@@ -161,41 +188,31 @@ class _CustomerShopState extends State<CustomerShop> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w600),
-                      ),
+                      Text(name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
-                      Text(
-                        category.toString(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                      ),
+                      Text(category,
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[700])),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "₱${price.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green),
-                          ),
-                          Text(
-                            "Stock: $stock",
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey[700]),
-                          ),
+                          Text("₱${price.toStringAsFixed(2)}",
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green)),
+                          Text("Stock: $stock",
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[700])),
                         ],
                       ),
                       const SizedBox(height: 10),
-
-                      // 🔥 Quantity selector
+                      // ⭐ Quantity Selector
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -203,38 +220,32 @@ class _CustomerShopState extends State<CustomerShop> {
                             onPressed: qty > 1
                                 ? () {
                                     setState(() {
-                                      quantities[index] = qty - 1;
+                                      quantities[productId] = qty - 1;
                                     });
                                   }
                                 : null,
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
-                          Text(
-                            qty.toString(),
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          Text(qty.toString(),
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                           IconButton(
                             onPressed: () {
                               setState(() {
-                                quantities[index] = qty + 1;
+                                quantities[productId] = qty + 1;
                               });
                             },
                             icon: const Icon(Icons.add_circle_outline),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
+                      // ⭐ ADD TO CART BUTTON
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    "Added $qty × $name to cart (coming soon)"),
-                              ),
-                            );
+                            addToCart(productId, qty);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orangeAccent,

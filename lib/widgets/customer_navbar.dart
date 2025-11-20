@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
   final String storeName;
   final VoidCallback? onSortPressed;
-  final VoidCallback? onCartPressed;
   final ValueChanged<String>? onSearchChanged;
 
   const CustomerNavbar({
     super.key,
     required this.storeName,
     this.onSortPressed,
-    this.onCartPressed,
     this.onSearchChanged,
   });
 
@@ -22,7 +20,7 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // 🏪 Store Name
+          // Store name
           Text(
             storeName,
             style: const TextStyle(
@@ -32,7 +30,7 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
 
-          // 🔍 Search Bar
+          // Search bar
           SizedBox(
             width: 300,
             child: TextField(
@@ -42,7 +40,6 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -51,27 +48,22 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
 
-          // 📂 Sort & 🛒 Cart buttons
+          // Buttons (Cart removed)
           Row(
             children: [
+              // Sort
               TextButton.icon(
                 onPressed: onSortPressed,
                 icon: const Icon(Icons.category, color: Colors.brown),
                 label: const Text(
-                  "Sort by Category",
+                  "Sort",
                   style: TextStyle(color: Colors.brown),
                 ),
               ),
+
               const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: onCartPressed,
-                icon: const Icon(Icons.shopping_cart, color: Colors.brown),
-                label: const Text(
-                  "Cart",
-                  style: TextStyle(color: Colors.brown),
-                ),
-              ),
-              const SizedBox(width: 8),
+
+              // Account
               TextButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(

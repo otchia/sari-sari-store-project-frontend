@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -244,12 +245,15 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
   // ---------------- Navigate to Dashboard ----------------
   void _navigateToDashboard(dynamic customer) {
+    // Save userId to localStorage
+    html.window.localStorage['customerId'] = customer["_id"];
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => CustomerDashboardPage(
           customerName: customer["name"] ?? customer["email"] ?? "Customer",
-          storeName: "Alyn Store",
+          storeName: "Alyn's Store",
         ),
       ),
     );

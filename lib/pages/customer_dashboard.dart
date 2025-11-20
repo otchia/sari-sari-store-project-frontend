@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import 'customer_login.dart';
+import '../widgets/cart_widget.dart';
 
 class CustomerDashboardPage extends StatefulWidget {
   final String customerName;
@@ -19,22 +20,18 @@ class CustomerDashboardPage extends StatefulWidget {
 
 class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   int selectedIndex = 0;
-
-  // 🔍 Search text from navbar
   String searchQuery = "";
-
-  // 🟢 Selected category filter
   String selectedCategory = "All";
 
   final List<String> menuItems = [
     "Shop",
+    "Cart", // ⭐ ADDED CART TAB
     "Wishlist",
     "Purchase History",
     "Order Status",
     "Chat",
   ];
 
-  // 🔹 Example categories (you can fetch dynamically from products if needed)
   final List<String> categories = [
     "All",
     "Beverages",
@@ -54,20 +51,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         elevation: 0,
         flexibleSpace: CustomerNavbar(
           storeName: widget.storeName,
-
-          // 🛒 Cart
-          onCartPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("🛒 Cart feature coming soon!")),
-            );
-          },
-
-          // 📂 Sort by Category
-          onSortPressed: () {
-            _showCategoryDialog();
-          },
-
-          // 🔍 Updates searchQuery every time user types
+          onSortPressed: _showCategoryDialog,
           onSearchChanged: (value) {
             setState(() {
               searchQuery = value;
@@ -91,8 +75,6 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       _buildNavButton(i, menuItems[i]),
                   ],
                 ),
-
-                // LOGOUT BUTTON
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: ElevatedButton.icon(
@@ -133,7 +115,6 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  // Sidebar button builder
   Widget _buildNavButton(int index, String label) {
     final bool isSelected = selectedIndex == index;
 
@@ -169,11 +150,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  // Icon mapping for each label
   IconData _getIconForLabel(String label) {
     switch (label) {
       case "Shop":
         return Icons.storefront;
+      case "Cart":
+        return Icons.shopping_cart; // ⭐ CART ICON
       case "Wishlist":
         return Icons.favorite;
       case "Purchase History":
@@ -187,31 +169,29 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     }
   }
 
-  // Main content switching
+  // ⭐ SWITCH BETWEEN SHOP + CART + OTHER PAGES
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        // 🛍 Pass searchQuery + selectedCategory to CustomerShop
         return CustomerShop(
           searchQuery: searchQuery,
           selectedCategory: selectedCategory,
         );
-
       case 1:
-        return _placeholderPage("Wishlist");
+        return const CartWidget(); // ⭐ CART INSIDE DASHBOARD
       case 2:
-        return _placeholderPage("Purchase History");
+        return _placeholderPage("Wishlist");
       case 3:
-        return _placeholderPage("Order Status");
+        return _placeholderPage("Purchase History");
       case 4:
+        return _placeholderPage("Order Status");
+      case 5:
         return _placeholderPage("Chat with Admin");
-
       default:
         return _welcomeSection();
     }
   }
 
-  // Welcome page
   Widget _welcomeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +208,6 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  // Placeholder pages
   Widget _placeholderPage(String title) {
     return Center(
       child: Text(
@@ -242,7 +221,6 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  // 🔹 CATEGORY DIALOG
   void _showCategoryDialog() {
     showDialog(
       context: context,
