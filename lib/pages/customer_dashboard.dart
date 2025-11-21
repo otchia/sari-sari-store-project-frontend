@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
-import 'customer_login.dart';
 import '../widgets/cart_widget.dart';
+import 'dart:html' as html;
 
 class CustomerDashboardPage extends StatefulWidget {
   final String customerName;
   final String storeName;
-  final bool isLoggedIn;
 
   const CustomerDashboardPage({
     super.key,
     required this.customerName,
     required this.storeName,
-    this.isLoggedIn = false,
   });
 
   @override
@@ -25,10 +23,11 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   String searchQuery = "";
   String selectedCategory = "All";
   late bool isLoggedIn;
+
   @override
   void initState() {
     super.initState();
-    isLoggedIn = widget.isLoggedIn;
+    isLoggedIn = html.window.localStorage.containsKey('customerId');
   }
 
   final List<String> menuItems = [

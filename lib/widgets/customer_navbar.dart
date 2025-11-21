@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../pages/customer_login.dart' show CustomerLoginPage;
+import '../pages/login_page.dart';
 
 
 class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
@@ -78,7 +78,7 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CustomerLoginPage()
+                        builder: (context) => const LoginPage()
                       ),
                     );
                     if (result == true && onLoginSuccess != null) {
