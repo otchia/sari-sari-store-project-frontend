@@ -10,7 +10,10 @@
 build/
 coverage/
 **/doc/api/
-*.lock
+
+# Ignore general lock files, but keep pubspec.lock
+package-lock.json
+yarn.lock
 
 # ========================
 # Android (ignore all except gradle & manifest)
