@@ -34,16 +34,17 @@ class _CustomerShopState extends State<CustomerShop> {
   Future<void> fetchProducts() async {
     setState(() => loading = true);
     try {
-      final response =
-          await http.get(Uri.parse("http://localhost:5000/api/products"));
+      final response = await http.get(
+        Uri.parse("http://localhost:5000/api/products"),
+      );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
         final List<dynamic> fetched =
             (decoded is Map && decoded['products'] is List)
-                ? List<dynamic>.from(decoded['products'])
-                : (decoded is List ? List<dynamic>.from(decoded) : []);
+            ? List<dynamic>.from(decoded['products'])
+            : (decoded is List ? List<dynamic>.from(decoded) : []);
 
         setState(() {
           products = fetched;
@@ -59,15 +60,15 @@ class _CustomerShopState extends State<CustomerShop> {
         setState(() => loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text("Failed to fetch products: ${response.statusCode}")),
+            content: Text("Failed to fetch products: ${response.statusCode}"),
+          ),
         );
       }
     } catch (e) {
       setState(() => loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error fetching products: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error fetching products: $e")));
     }
   }
 
@@ -76,13 +77,13 @@ class _CustomerShopState extends State<CustomerShop> {
     final String? userId = html.window.localStorage['customerId'];
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You must be logged in!")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("You must be logged in!")));
       return;
     }
 
-    final url = Uri.parse("http://localhost:5000/api/cart/add");
+    final url = Uri.parse("http://localhost:5000/api/cart/");
 
     try {
       final response = await http.post(
@@ -95,24 +96,37 @@ class _CustomerShopState extends State<CustomerShop> {
         }),
       );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Added $qty item(s) to cart")),
-        );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-        // 🔹 Update the global cart notifier
-        cartNotifier.value++;
+      // Try to decode JSON safely
+      Map<String, dynamic>? decoded;
+      try {
+        decoded = jsonDecode(response.body) as Map<String, dynamic>?;
+      } catch (e) {
+        decoded = null;
+      }
+
+      if (response.statusCode == 200 && decoded != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Added $qty item(s) to cart")));
+        cartNotifier.value++; // update cart globally
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  "Failed to add to cart: ${response.statusCode} — ${response.body}")),
+            content: Text(
+              decoded != null
+                  ? (decoded['message'] ?? "Failed to add to cart")
+                  : "Server returned invalid response: ${response.body}",
+            ),
+          ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error adding to cart: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error adding to cart: $e")));
     }
   }
 
@@ -131,8 +145,8 @@ class _CustomerShopState extends State<CustomerShop> {
       final category = product['category']?.toString() ?? '';
       final matchesCategory =
           (widget.selectedCategory == null || widget.selectedCategory == "All")
-              ? true
-              : category == widget.selectedCategory;
+          ? true
+          : category == widget.selectedCategory;
 
       return matchesSearch && matchesCategory;
     }).toList();
@@ -160,15 +174,17 @@ class _CustomerShopState extends State<CustomerShop> {
 
           return Card(
             elevation: 3,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
                     child: imageUrl.isNotEmpty
                         ? Image.network(
                             imageUrl,
@@ -183,32 +199,46 @@ class _CustomerShopState extends State<CustomerShop> {
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 10,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w600)),
+                      Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      Text(category,
-                          style:
-                              TextStyle(fontSize: 12, color: Colors.grey[700])),
+                      Text(
+                        category,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                      ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("₱${price.toStringAsFixed(2)}",
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green)),
-                          Text("Stock: $stock",
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[700])),
+                          Text(
+                            "₱${price.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                          Text(
+                            "Stock: $stock",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[700],
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -226,9 +256,13 @@ class _CustomerShopState extends State<CustomerShop> {
                                 : null,
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
-                          Text(qty.toString(),
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            qty.toString(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           IconButton(
                             onPressed: () {
                               setState(() {
@@ -251,7 +285,8 @@ class _CustomerShopState extends State<CustomerShop> {
                             backgroundColor: Colors.orangeAccent,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 10),
                           ),
                           child: const Text("Add to Cart"),

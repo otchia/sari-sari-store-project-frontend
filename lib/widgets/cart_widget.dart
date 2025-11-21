@@ -38,17 +38,19 @@ class _CartWidgetState extends State<CartWidget> {
     }
 
     try {
-      final res =
-          await http.get(Uri.parse("http://localhost:5000/api/cart/$userId"));
+      final res = await http.get(
+        Uri.parse("http://localhost:5000/api/cart/$userId"),
+      );
 
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
-        final items = decoded is Map
-            ? decoded['items'] ?? []
-            : (decoded is List ? decoded : []);
+        final items = decoded['items'] ?? [];
+
+        // Filter out soft-deleted items
+        final activeItems = items.where((i) => i['removed'] != true).toList();
 
         setState(() {
-          cartItems = items;
+          cartItems = activeItems;
           loading = false;
         });
       } else {
@@ -59,17 +61,19 @@ class _CartWidgetState extends State<CartWidget> {
     }
   }
 
+  // DELETE item
   Future<void> removeItem(String productId) async {
     final userId = html.window.localStorage['customerId'];
     if (userId == null) return;
 
     try {
-      final res = await http.post(
-        Uri.parse("http://localhost:5000/api/cart/delete"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"userId": userId, "productId": productId}),
+      final req = http.Request(
+        'DELETE',
+        Uri.parse("http://localhost:5000/api/cart/item"),
       );
-
+      req.headers.addAll({"Content-Type": "application/json"});
+      req.body = jsonEncode({"userId": userId, "productId": productId});
+      final res = await req.send();
       if (res.statusCode == 200) {
         fetchCart();
         cartNotifier.value++;
@@ -77,18 +81,23 @@ class _CartWidgetState extends State<CartWidget> {
     } catch (_) {}
   }
 
+  // PATCH quantity
   Future<void> updateQuantity(String productId, int quantity) async {
     final userId = html.window.localStorage['customerId'];
     if (userId == null) return;
 
     try {
-      final res = await http.post(
-        Uri.parse("http://localhost:5000/api/cart/update"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(
-            {"userId": userId, "productId": productId, "quantity": quantity}),
+      final req = http.Request(
+        'PATCH',
+        Uri.parse("http://localhost:5000/api/cart/item"),
       );
-
+      req.headers.addAll({"Content-Type": "application/json"});
+      req.body = jsonEncode({
+        "userId": userId,
+        "productId": productId,
+        "quantity": quantity,
+      });
+      final res = await req.send();
       if (res.statusCode == 200) {
         fetchCart();
         cartNotifier.value++;
@@ -110,9 +119,9 @@ class _CartWidgetState extends State<CartWidget> {
       if (res.statusCode == 200) {
         fetchCart();
         cartNotifier.value++;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Checkout successful!")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Checkout successful!")));
       } else {
         final decoded = jsonDecode(res.body);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,17 +129,17 @@ class _CartWidgetState extends State<CartWidget> {
         );
       }
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error during checkout")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Error during checkout")));
     }
   }
 
   double get total {
     double t = 0;
     for (var item in cartItems) {
-      final p = item['productId'] ?? {};
-      final price = double.tryParse(p['price']?.toString() ?? "0") ?? 0;
+      final product = item['productId'] ?? {};
+      final price = double.tryParse(product['price']?.toString() ?? "0") ?? 0;
       final qty = item['quantity'] ?? 1;
       t += price * qty;
     }
@@ -146,81 +155,94 @@ class _CartWidgetState extends State<CartWidget> {
       child: loading
           ? const Center(child: CircularProgressIndicator())
           : cartItems.isEmpty
-              ? const Center(child: Text("Your cart is empty"))
-              : Column(
-                  children: [
-                    const Text("Your Cart",
-                        style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: cartItems.length,
-                        itemBuilder: (context, index) {
-                          final item = cartItems[index];
-                          final product = item['productId'];
-                          final qty = item['quantity'];
-                          final name = product['name'];
-                          final image = product['imageUrl'] ?? "";
-                          final price = double.tryParse(
-                                  product['price']?.toString() ?? "0") ??
-                              0;
+          ? const Center(child: Text("Your cart is empty"))
+          : Column(
+              children: [
+                const Text(
+                  "Your Cart",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = cartItems[index];
+                      final product = item['productId'];
+                      final qty = item['quantity'];
+                      final name = product['name'];
+                      final image = product['imageUrl'] ?? "";
+                      final price =
+                          double.tryParse(
+                            product['price']?.toString() ?? "0",
+                          ) ??
+                          0;
 
-                          return Card(
-                            child: ListTile(
-                              leading: image.isNotEmpty
-                                  ? Image.network(image,
-                                      width: 50, height: 50, fit: BoxFit.cover)
-                                  : const Icon(Icons.inventory_2),
-                              title: Text(name),
-                              subtitle: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                      return Card(
+                        child: ListTile(
+                          leading: image.isNotEmpty
+                              ? Image.network(
+                                  image,
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(Icons.inventory_2),
+                          title: Text(name),
+                          subtitle: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("₱${price.toStringAsFixed(2)} × $qty"),
+                              Row(
                                 children: [
-                                  Text("₱${price.toStringAsFixed(2)} × $qty"),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                            Icons.remove_circle_outline),
-                                        onPressed: qty > 1
-                                            ? () => updateQuantity(
-                                                product['_id'], qty - 1)
-                                            : null,
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                            Icons.add_circle_outline),
-                                        onPressed: () => updateQuantity(
-                                            product['_id'], qty + 1),
-                                      ),
-                                    ],
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                    onPressed: qty > 1
+                                        ? () => updateQuantity(
+                                            product['_id'],
+                                            qty - 1,
+                                          )
+                                        : null,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    onPressed: () =>
+                                        updateQuantity(product['_id'], qty + 1),
                                   ),
                                 ],
                               ),
-                              trailing: IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => removeItem(product['_id']),
-                              ),
-                            ),
-                          );
-                        },
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => removeItem(product['_id']),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Total: ₱${total.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Total: ₱${total.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        ElevatedButton(
-                            onPressed: checkout, child: const Text("Checkout"))
-                      ],
+                    ElevatedButton(
+                      onPressed: checkout,
+                      child: const Text("Checkout"),
                     ),
                   ],
                 ),
+              ],
+            ),
     );
   }
 }
