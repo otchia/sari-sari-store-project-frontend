@@ -7,11 +7,13 @@ import '../widgets/cart_widget.dart';
 class CustomerDashboardPage extends StatefulWidget {
   final String customerName;
   final String storeName;
+  final bool isLoggedIn;
 
   const CustomerDashboardPage({
     super.key,
     required this.customerName,
     required this.storeName,
+    this.isLoggedIn = false,
   });
 
   @override
@@ -22,6 +24,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   int selectedIndex = 0;
   String searchQuery = "";
   String selectedCategory = "All";
+  late bool isLoggedIn;
+  @override
+  void initState() {
+    super.initState();
+    isLoggedIn = widget.isLoggedIn;
+  }
 
   final List<String> menuItems = [
     "Shop",
@@ -51,10 +59,16 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         elevation: 0,
         flexibleSpace: CustomerNavbar(
           storeName: widget.storeName,
+          isLoggedIn: isLoggedIn,
           onSortPressed: _showCategoryDialog,
           onSearchChanged: (value) {
             setState(() {
               searchQuery = value;
+            });
+          },
+          onLoginSuccess: () {
+            setState(() {
+              isLoggedIn = true;
             });
           },
         ),
@@ -75,6 +89,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       _buildNavButton(i, menuItems[i]),
                   ],
                 ),
+                /* Logout button
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: ElevatedButton.icon(
@@ -99,6 +114,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     ),
                   ),
                 ),
+                */
               ],
             ),
           ),

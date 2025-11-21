@@ -223,7 +223,7 @@ class _AdminStoreSettingsState extends State<AdminStoreSettings> {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
         trailing: Switch(
           value: value,
-          activeColor: Colors.green,
+          activeThumbColor: Colors.green,
           onChanged: onChange,
         ),
       ),

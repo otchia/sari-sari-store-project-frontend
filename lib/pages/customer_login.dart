@@ -125,7 +125,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       if (response.statusCode == 200) {
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.of(context).pop();
+        if (!mounted) return;
         _navigateToDashboard(res["customer"]);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -208,7 +208,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         final res = jsonDecode(loginResp.body);
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.of(context).pop();
+        if (!mounted) return;
         _navigateToDashboard(res["customer"]);
         return;
       }
@@ -226,9 +226,8 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
           final res = jsonDecode(registerResp.body);
           _showSuccessModal();
           await Future.delayed(const Duration(seconds: 2));
-          if (mounted) Navigator.of(context).pop();
+          if (!mounted) return;
           _navigateToDashboard(res["customer"]);
-          return;
         }
       }
 

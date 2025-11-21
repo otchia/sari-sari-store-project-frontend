@@ -182,7 +182,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const SizedBox(width: 10),
             Switch(
               value: isStoreOpen,
-              activeColor: Colors.green,
+              activeThumbColor: Colors.green,
               inactiveThumbColor: Colors.red,
               onChanged: (value) {
                 setState(() {
