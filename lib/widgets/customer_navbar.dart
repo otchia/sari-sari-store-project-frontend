@@ -71,7 +71,7 @@ class CustomerNavbar extends StatelessWidget implements PreferredSizeWidget {
 
               const SizedBox(width: 8),
 
-              // Account / Logout
+              // Login / Account
               TextButton.icon(
                 onPressed: () async {
                   if (!isLoggedIn) {

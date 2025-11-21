@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import '../widgets/cart_widget.dart';
+import '../pages/login_page.dart';
 import 'dart:html' as html;
 
 class CustomerDashboardPage extends StatefulWidget {
@@ -88,32 +89,35 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       _buildNavButton(i, menuItems[i]),
                   ],
                 ),
-                /* Logout button
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CustomerLoginPage(),
+                // Logout button (visible only if logged in)
+                if (isLoggedIn) 
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          isLoggedIn = false;
+                        });
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.logout),
+                      label: const Text("Logout"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.logout),
-                    label: const Text("Logout"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                ),
-                */
               ],
             ),
           ),
