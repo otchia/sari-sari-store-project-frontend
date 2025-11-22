@@ -106,6 +106,18 @@ class _CartWidgetState extends State<CartWidget> {
   }
 
   Future<void> checkout() async {
+    final bool hasOutOfStock = cartItems.any(
+      (item) => (item['productId']['stock'] ?? 0) == 0,
+      );
+
+    if (hasOutOfStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Remove out-of-stock items before checkout."),
+        ),
+      ); return;
+    }
+
     final userId = html.window.localStorage['customerId'];
     if (userId == null) return;
 
@@ -177,6 +189,8 @@ class _CartWidgetState extends State<CartWidget> {
                             product['price']?.toString() ?? "0",
                           ) ??
                           0;
+                      final stock = product['stock'] ?? 0;
+                      final bool outOfStock = stock == 0;
 
                       return Card(
                         child: ListTile(
@@ -189,32 +203,43 @@ class _CartWidgetState extends State<CartWidget> {
                                 )
                               : const Icon(Icons.inventory_2),
                           title: Text(name),
-                          subtitle: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("₱${price.toStringAsFixed(2)} × $qty"),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.remove_circle_outline,
+
+                          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("₱${price.toStringAsFixed(2)} × $qty"),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon( Icons.remove_circle_outline),
+                                      onPressed: qty > 1 && !outOfStock
+                                          ? () => updateQuantity(product['_id'], qty - 1)
+                                          : null,
                                     ),
-                                    onPressed: qty > 1
-                                        ? () => updateQuantity(
-                                            product['_id'],
-                                            qty - 1,
-                                          )
-                                        : null,
+                                    IconButton(
+                                      icon: const Icon(Icons.add_circle_outline),
+                                      onPressed: !outOfStock ? () =>
+                                          updateQuantity(product['_id'], qty + 1)
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            if (outOfStock)
+                              const Text (
+                                "Out of Stock",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.add_circle_outline),
-                                    onPressed: () =>
-                                        updateQuantity(product['_id'], qty + 1),
-                                  ),
-                                ],
-                              ),
+                                ),
                             ],
                           ),
+                          
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => removeItem(product['_id']),
