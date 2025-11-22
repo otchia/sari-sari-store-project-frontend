@@ -171,6 +171,7 @@ class _CustomerShopState extends State<CustomerShop> {
           final stock = product['stock']?.toString() ?? '0';
           final price = double.tryParse(product['price'].toString()) ?? 0.0;
           final qty = quantities[productId] ?? 1;
+          final bool outOfStock = (product['stock'] ?? 0) == 0;
 
           return Card(
             elevation: 3,
@@ -247,7 +248,7 @@ class _CustomerShopState extends State<CustomerShop> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           IconButton(
-                            onPressed: qty > 1
+                            onPressed: !outOfStock && qty > 1
                                 ? () {
                                     setState(() {
                                       quantities[productId] = qty - 1;
@@ -264,11 +265,12 @@ class _CustomerShopState extends State<CustomerShop> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {
+                            onPressed: !outOfStock ? () {
                               setState(() {
                                 quantities[productId] = qty + 1;
                               });
-                            },
+                            }
+                            : null,
                             icon: const Icon(Icons.add_circle_outline),
                           ),
                         ],
@@ -277,20 +279,37 @@ class _CustomerShopState extends State<CustomerShop> {
                       // ⭐ ADD TO CART BUTTON
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            addToCart(productId, qty);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orangeAccent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
+                        child: outOfStock
+                          ? Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: const Text(
+                              "Out of Stock",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          )
+                          : ElevatedButton(
+                              onPressed: () {
+                                addToCart(productId, qty);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orangeAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                              child: const Text("Add to Cart"),
                           ),
-                          child: const Text("Add to Cart"),
-                        ),
                       ),
                     ],
                   ),
