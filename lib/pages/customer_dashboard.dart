@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import '../widgets/cart_widget.dart';
-import '../pages/login_page.dart';
 import 'dart:html' as html;
 
 class CustomerDashboardPage extends StatefulWidget {
@@ -95,6 +94,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     padding: const EdgeInsets.only(bottom: 20),
                     child: ElevatedButton.icon(
                       onPressed: () {
+                        html.window.localStorage.remove('customerId');
                         setState(() {
                           isLoggedIn = false;
                         });
