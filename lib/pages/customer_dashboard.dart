@@ -98,12 +98,6 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                         setState(() {
                           isLoggedIn = false;
                         });
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                        );
                       },
                       icon: const Icon(Icons.logout),
                       label: const Text("Logout"),
