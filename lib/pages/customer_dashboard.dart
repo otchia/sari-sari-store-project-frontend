@@ -89,7 +89,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                   ],
                 ),
                 // Logout button (visible only if logged in)
-                if (isLoggedIn) 
+                if (isLoggedIn)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: ElevatedButton.icon(
@@ -105,7 +105,9 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                         backgroundColor: Colors.redAccent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -152,11 +154,10 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
           ),
         ),
         style: TextButton.styleFrom(
-          backgroundColor:
-              isSelected ? const Color(0xFFFFECB3) : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          backgroundColor: isSelected
+              ? const Color(0xFFFFECB3)
+              : Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
       ),
@@ -186,7 +187,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        return CustomerShop(
+        return CustomerShopFixed(
           searchQuery: searchQuery,
           selectedCategory: selectedCategory,
         );
