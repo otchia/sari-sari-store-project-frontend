@@ -55,13 +55,16 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+                    child: const Padding(
+                      padding: EdgeInsets.all(24.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.check_circle,
-                              color: Colors.green, size: 80),
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 80,
+                          ),
                           SizedBox(height: 16),
                           Text(
                             "Login Successful!",
@@ -126,10 +129,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         backgroundColor: const Color(0xFFFFC107),
         title: const Text(
           "Admin Login",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.brown,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
         ),
         centerTitle: true,
         elevation: 3,
@@ -152,8 +152,11 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.admin_panel_settings,
-                          size: 80, color: Colors.redAccent),
+                      const Icon(
+                        Icons.admin_panel_settings,
+                        size: 80,
+                        color: Colors.redAccent,
+                      ),
                       const SizedBox(height: 16),
                       const Text(
                         "Welcome, Admin!",
@@ -240,7 +243,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                             backgroundColor: Colors.redAccent,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 14),
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

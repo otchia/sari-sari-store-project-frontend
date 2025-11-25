@@ -112,20 +112,22 @@ class _AdminStoreSettingsState extends State<AdminStoreSettings> {
               const SizedBox(height: 20),
 
               // ---------- STORE NAME ----------
-              const Text("Store Name",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const Text(
+                "Store Name",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
               TextField(
                 controller: storeNameController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
 
               const SizedBox(height: 20),
 
               // ---------- STORE HOURS (Time Picker) ----------
-              const Text("Store Hours",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const Text(
+                "Store Hours",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
               TextField(
                 controller: storeHoursController,
                 readOnly: true,
@@ -165,7 +167,9 @@ class _AdminStoreSettingsState extends State<AdminStoreSettings> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.brown,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 14),
+                      horizontal: 40,
+                      vertical: 14,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -184,9 +188,7 @@ class _AdminStoreSettingsState extends State<AdminStoreSettings> {
         if (saving)
           Container(
             color: Colors.black.withOpacity(0.4),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
       ],
     );
@@ -196,14 +198,14 @@ class _AdminStoreSettingsState extends State<AdminStoreSettings> {
   void pickStoreHours() async {
     final start = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: 9, minute: 0),
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
     );
 
     if (start == null) return;
 
     final end = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: 18, minute: 0),
+      initialTime: const TimeOfDay(hour: 18, minute: 0),
     );
 
     if (end == null) return;
@@ -219,8 +221,10 @@ class _AdminStoreSettingsState extends State<AdminStoreSettings> {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        title: Text(label,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+        title: Text(
+          label,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
         trailing: Switch(
           value: value,
           activeThumbColor: Colors.green,

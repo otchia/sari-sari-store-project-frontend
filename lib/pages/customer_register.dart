@@ -33,9 +33,9 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
         email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("All fields are required")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("All fields are required")));
       return;
     }
 
@@ -80,13 +80,16 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+                    child: const Padding(
+                      padding: EdgeInsets.all(24.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.check_circle,
-                              color: Colors.green, size: 80),
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 80,
+                          ),
                           SizedBox(height: 16),
                           Text(
                             "Account Created!",
@@ -116,18 +119,18 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => const CustomerLoginPage(),
-          ),
+          MaterialPageRoute(builder: (context) => const CustomerLoginPage()),
         );
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(response.body)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.body)));
       }
     } catch (e) {
       setState(() => loading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
@@ -139,10 +142,7 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
         backgroundColor: const Color(0xFFFFC107),
         title: const Text(
           "Customer Registration",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.brown,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
         ),
         centerTitle: true,
         elevation: 3,
@@ -163,8 +163,11 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.person_add,
-                        size: 80, color: Colors.orangeAccent),
+                    const Icon(
+                      Icons.person_add,
+                      size: 80,
+                      color: Colors.orangeAccent,
+                    ),
                     const SizedBox(height: 16),
 
                     // Full Name
@@ -291,7 +294,9 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
                           backgroundColor: Colors.orangeAccent,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 24),
+                            vertical: 14,
+                            horizontal: 24,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

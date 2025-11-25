@@ -34,9 +34,13 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
   void initState() {
     super.initState();
     _googleBtnAnim = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 120));
-    _googleBtnScale =
-        Tween<double>(begin: 1.0, end: 0.98).animate(_googleBtnAnim);
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _googleBtnScale = Tween<double>(
+      begin: 1.0,
+      end: 0.98,
+    ).animate(_googleBtnAnim);
   }
 
   @override
@@ -67,11 +71,11 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.check_circle, color: Colors.green, size: 80),
                       SizedBox(height: 16),
                       Text(
@@ -104,8 +108,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("All fields are required")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("All fields are required")));
       return;
     }
 
@@ -180,8 +185,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       final user = userCredential.user;
       if (user == null) {
         setState(() => loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Google sign-in failed")));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Google sign-in failed")));
         return;
       }
 
@@ -193,7 +199,8 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       if (email.isEmpty) {
         setState(() => loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Google account has no email")));
+          const SnackBar(content: Text("Google account has no email")),
+        );
         return;
       }
 
@@ -218,8 +225,11 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         final registerResp = await http.post(
           Uri.parse("http://localhost:5000/api/customer/google-register"),
           headers: {"Content-Type": "application/json"},
-          body:
-              jsonEncode({"name": name, "email": email, "photoUrl": photoUrl}),
+          body: jsonEncode({
+            "name": name,
+            "email": email,
+            "photoUrl": photoUrl,
+          }),
         );
 
         if (registerResp.statusCode == 201 || registerResp.statusCode == 200) {
@@ -232,20 +242,22 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       }
 
       setState(() => loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Login error: ${loginResp.body}")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login error: ${loginResp.body}")));
     } catch (e) {
       setState(() => loading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Google sign-in error: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Google sign-in error: $e")));
     }
   }
 
   // ---------------- Navigate to Dashboard ----------------
   void _navigateToDashboard(dynamic customer) {
     final customerId = customer?["_id"]?.toString() ?? "";
-    final customerName =
-        (customer?["name"] ?? customer?["email"] ?? "Customer").toString();
+    final customerName = (customer?["name"] ?? customer?["email"] ?? "Customer")
+        .toString();
 
     // Save userId to localStorage safely
     if (customerId.isNotEmpty) {
@@ -273,10 +285,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       child: AnimatedBuilder(
         animation: _googleBtnScale,
         builder: (context, child) {
-          return Transform.scale(
-            scale: _googleBtnScale.value,
-            child: child,
-          );
+          return Transform.scale(scale: _googleBtnScale.value, child: child);
         },
         child: Container(
           width: double.infinity,
@@ -341,21 +350,26 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
               color: Colors.white,
               elevation: 5,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.storefront,
-                        size: 80, color: Colors.orangeAccent),
+                    const Icon(
+                      Icons.storefront,
+                      size: 80,
+                      color: Colors.orangeAccent,
+                    ),
                     const SizedBox(height: 16),
                     const Text(
                       "Welcome, Customer!",
                       style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.brown),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.brown,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     // Email field
@@ -387,12 +401,15 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                           borderSide: BorderSide.none,
                         ),
                         suffixIcon: IconButton(
-                          icon: Icon(_isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off),
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
                           onPressed: () {
                             setState(
-                                () => _isPasswordVisible = !_isPasswordVisible);
+                              () => _isPasswordVisible = !_isPasswordVisible,
+                            );
                           },
                         ),
                       ),
@@ -406,16 +423,22 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                         icon: const Icon(Icons.login),
                         label: loading
                             ? const CircularProgressIndicator(
-                                color: Colors.white)
-                            : const Text("Login",
-                                style: TextStyle(fontSize: 16)),
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                "Login",
+                                style: TextStyle(fontSize: 16),
+                              ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orangeAccent,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 14),
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
@@ -429,7 +452,8 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const CustomerRegisterPage()),
+                            builder: (_) => const CustomerRegisterPage(),
+                          ),
                         );
                       },
                       child: const Text(

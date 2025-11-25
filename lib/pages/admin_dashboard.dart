@@ -66,7 +66,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       backgroundColor: Colors.redAccent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -114,8 +116,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
         ),
         style: TextButton.styleFrom(
-          backgroundColor:
-              isSelected ? const Color(0xFFFFECB3) : Colors.transparent,
+          backgroundColor: isSelected
+              ? const Color(0xFFFFECB3)
+              : Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
@@ -145,11 +148,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        return AdminStoreSettings();
+        return const AdminStoreSettings();
       case 1:
         return _placeholderPage("Orders");
       case 2:
-        return AdminInventory();
+        return const AdminInventory();
       case 3:
         return _placeholderPage("Chat");
       case 4:
@@ -175,10 +178,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         const SizedBox(height: 20),
         Row(
           children: [
-            const Text(
-              "Store is currently:",
-              style: TextStyle(fontSize: 18),
-            ),
+            const Text("Store is currently:", style: TextStyle(fontSize: 18)),
             const SizedBox(width: 10),
             Switch(
               value: isStoreOpen,

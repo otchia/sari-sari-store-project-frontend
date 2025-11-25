@@ -34,9 +34,9 @@ class _AdminInventoryState extends State<AdminInventory> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error loading products: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error loading products: $e")));
     }
   }
 
@@ -47,8 +47,11 @@ class _AdminInventoryState extends State<AdminInventory> {
       } else if (sortBy == 'Category') {
         products.sort((a, b) => a['category'].compareTo(b['category']));
       } else if (sortBy == 'Date Added') {
-        products.sort((a, b) => DateTime.parse(b['createdAt'])
-            .compareTo(DateTime.parse(a['createdAt'])));
+        products.sort(
+          (a, b) => DateTime.parse(
+            b['createdAt'],
+          ).compareTo(DateTime.parse(a['createdAt'])),
+        );
       }
     });
   }
@@ -59,12 +62,14 @@ class _AdminInventoryState extends State<AdminInventory> {
       final response = await http.delete(url);
       if (response.statusCode == 200) {
         setState(() => products.removeWhere((p) => p['_id'] == id));
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Product deleted")));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Product deleted")));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Delete error: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Delete error: $e")));
     }
   }
 
@@ -81,14 +86,18 @@ class _AdminInventoryState extends State<AdminInventory> {
 
       reader.onLoadEnd.listen((e) async {
         final bytes = reader.result as List<int>;
-        final request = http.MultipartRequest('POST',
-            Uri.parse('http://localhost:5000/api/products/upload-image'));
-        request.files.add(http.MultipartFile.fromBytes(
-          'image',
-          bytes,
-          filename: file.name,
-          contentType: http.MediaType('image', file.name.split('.').last),
-        ));
+        final request = http.MultipartRequest(
+          'POST',
+          Uri.parse('http://localhost:5000/api/products/upload-image'),
+        );
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'image',
+            bytes,
+            filename: file.name,
+            contentType: http.MediaType('image', file.name.split('.').last),
+          ),
+        );
 
         final response = await request.send();
         if (response.statusCode == 200) {
@@ -99,7 +108,8 @@ class _AdminInventoryState extends State<AdminInventory> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Upload failed: ${response.statusCode}')));
+            SnackBar(content: Text('Upload failed: ${response.statusCode}')),
+          );
         }
       });
     });
@@ -109,20 +119,24 @@ class _AdminInventoryState extends State<AdminInventory> {
   void showAddEditDialog({Map? product}) {
     final name = TextEditingController(text: product?['name'] ?? '');
     final category = TextEditingController(text: product?['category'] ?? '');
-    final price =
-        TextEditingController(text: product?['price']?.toString() ?? '');
-    final stock =
-        TextEditingController(text: product?['stock']?.toString() ?? '');
+    final price = TextEditingController(
+      text: product?['price']?.toString() ?? '',
+    );
+    final stock = TextEditingController(
+      text: product?['stock']?.toString() ?? '',
+    );
     final brand = TextEditingController(text: product?['brand'] ?? '');
     final variation = TextEditingController(text: product?['variation'] ?? '');
-    final description =
-        TextEditingController(text: product?['description'] ?? '');
-    final weight =
-        TextEditingController(text: product?['weight']?.toString() ?? '');
+    final description = TextEditingController(
+      text: product?['description'] ?? '',
+    );
+    final weight = TextEditingController(
+      text: product?['weight']?.toString() ?? '',
+    );
     final shelfLife = TextEditingController(text: product?['shelfLife'] ?? '');
 
     // If editing an existing product, prefill image
-    pickedImageUrl = product?['imageUrl'] ?? null;
+    pickedImageUrl = product?['imageUrl'];
 
     showDialog(
       context: context,
@@ -133,77 +147,101 @@ class _AdminInventoryState extends State<AdminInventory> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // --- Basic Info ---
-              const Text("Basic Information",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Basic Information",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               TextField(
-                  controller: name,
-                  decoration: const InputDecoration(labelText: "Product Name")),
+                controller: name,
+                decoration: const InputDecoration(labelText: "Product Name"),
+              ),
               TextField(
-                  controller: brand,
-                  decoration: const InputDecoration(labelText: "Brand")),
+                controller: brand,
+                decoration: const InputDecoration(labelText: "Brand"),
+              ),
               TextField(
-                  controller: category,
-                  decoration: const InputDecoration(labelText: "Category")),
+                controller: category,
+                decoration: const InputDecoration(labelText: "Category"),
+              ),
               TextField(
-                  controller: variation,
-                  decoration: const InputDecoration(labelText: "Variation")),
+                controller: variation,
+                decoration: const InputDecoration(labelText: "Variation"),
+              ),
               const SizedBox(height: 16),
 
               // --- Pricing & Stock ---
-              const Text("Pricing & Stock",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Pricing & Stock",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               TextField(
-                  controller: price,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Price")),
+                controller: price,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Price"),
+              ),
               TextField(
-                  controller: stock,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Stock")),
+                controller: stock,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Stock"),
+              ),
               const SizedBox(height: 16),
 
               // --- Description ---
-              const Text("Description",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Description",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               TextField(
-                  controller: description,
-                  maxLines: 2,
-                  decoration: const InputDecoration(labelText: "Description")),
+                controller: description,
+                maxLines: 2,
+                decoration: const InputDecoration(labelText: "Description"),
+              ),
               const SizedBox(height: 16),
 
               // --- Extra Details ---
-              const Text("Additional Details",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Additional Details",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               TextField(
-                  controller: weight,
-                  keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: "Weight (grams)")),
+                controller: weight,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Weight (grams)"),
+              ),
               TextField(
-                  controller: shelfLife,
-                  decoration: const InputDecoration(
-                      labelText: "Shelf Life (YYYY-MM-DD)")),
+                controller: shelfLife,
+                decoration: const InputDecoration(
+                  labelText: "Shelf Life (YYYY-MM-DD)",
+                ),
+              ),
               const SizedBox(height: 16),
 
               // --- Image Picker & Preview ---
-              const Text("Product Image",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Product Image",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               ElevatedButton(
                 onPressed: pickAndUploadImage,
                 child: const Text("Pick Image"),
               ),
               const SizedBox(height: 8),
               pickedImageUrl != null
-                  ? Image.network(pickedImageUrl!,
-                      width: 100, height: 100, fit: BoxFit.cover)
+                  ? Image.network(
+                      pickedImageUrl!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    )
                   : Container(),
             ],
           ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel")),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
           ElevatedButton(
             child: const Text("Save"),
             onPressed: () async {
@@ -223,16 +261,21 @@ class _AdminInventoryState extends State<AdminInventory> {
               if (product != null) {
                 // UPDATE
                 final url = Uri.parse(
-                    "http://localhost:5000/api/products/${product['_id']}");
-                await http.put(url,
-                    headers: {"Content-Type": "application/json"},
-                    body: jsonEncode(data));
+                  "http://localhost:5000/api/products/${product['_id']}",
+                );
+                await http.put(
+                  url,
+                  headers: {"Content-Type": "application/json"},
+                  body: jsonEncode(data),
+                );
               } else {
                 // ADD
                 final url = Uri.parse("http://localhost:5000/api/products/add");
-                await http.post(url,
-                    headers: {"Content-Type": "application/json"},
-                    body: jsonEncode(data));
+                await http.post(
+                  url,
+                  headers: {"Content-Type": "application/json"},
+                  body: jsonEncode(data),
+                );
               }
 
               Navigator.pop(context);
@@ -255,19 +298,27 @@ class _AdminInventoryState extends State<AdminInventory> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Inventory",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Text(
+                "Inventory",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
               Row(
                 children: [
                   DropdownButton<String>(
                     value: sortBy,
                     items: const [
                       DropdownMenuItem(
-                          value: 'Alphabetical', child: Text("Alphabetical")),
+                        value: 'Alphabetical',
+                        child: Text("Alphabetical"),
+                      ),
                       DropdownMenuItem(
-                          value: 'Category', child: Text("Category")),
+                        value: 'Category',
+                        child: Text("Category"),
+                      ),
                       DropdownMenuItem(
-                          value: 'Date Added', child: Text("Date Added")),
+                        value: 'Date Added',
+                        child: Text("Date Added"),
+                      ),
                     ],
                     onChanged: (v) {
                       if (v != null) {
@@ -281,7 +332,7 @@ class _AdminInventoryState extends State<AdminInventory> {
                     icon: const Icon(Icons.add),
                     label: const Text("Add Product"),
                     onPressed: () => showAddEditDialog(),
-                  )
+                  ),
                 ],
               ),
             ],
@@ -298,27 +349,37 @@ class _AdminInventoryState extends State<AdminInventory> {
                     final p = products[i];
                     return Card(
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ListTile(
                         leading: p['imageUrl'] != null && p['imageUrl'] != ''
-                            ? Image.network(p['imageUrl'],
-                                width: 50, height: 50, fit: BoxFit.cover)
-                            : const Icon(Icons.inventory_2,
-                                size: 50, color: Colors.grey),
+                            ? Image.network(
+                                p['imageUrl'],
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              )
+                            : const Icon(
+                                Icons.inventory_2,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
                         title: Text(p['name']),
                         subtitle: Text(
-                            "${p['category']} • ₱${p['price']} • Stock: ${p['stock']}"),
+                          "${p['category']} • ₱${p['price']} • Stock: ${p['stock']}",
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => showAddEditDialog(product: p)),
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => showAddEditDialog(product: p),
+                            ),
                             IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => deleteProduct(p['_id'])),
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => deleteProduct(p['_id']),
+                            ),
                           ],
                         ),
                       ),

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:html' as html;
 import '../globals.dart';
+import './product_detail.dart'; // <-- Import the real ProductDetail
 
 class CustomerShopFixed extends StatefulWidget {
   final String searchQuery;
@@ -148,8 +149,9 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
   @override
   Widget build(BuildContext context) {
     if (loading) return const Center(child: CircularProgressIndicator());
-    if (products.isEmpty)
+    if (products.isEmpty) {
       return const Center(child: Text('No products available'));
+    }
 
     filteredProducts = products.where((product) {
       final name = (product['name'] ?? '').toString().toLowerCase();
@@ -347,7 +349,6 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                                                 ),
                                               );
                                             },
-                                            child: const Text('Add'),
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor:
                                                   Colors.orangeAccent,
@@ -357,6 +358,7 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                                                     BorderRadius.circular(6),
                                               ),
                                             ),
+                                            child: const Text('Add'),
                                           ),
                                   ),
                                 ],
@@ -373,19 +375,6 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class ProductDetail extends StatelessWidget {
-  final Map<String, dynamic> product;
-  const ProductDetail({super.key, required this.product});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(product['name'] ?? 'Product Detail')),
-      body: Center(child: Text('Product detail page placeholder')),
     );
   }
 }
