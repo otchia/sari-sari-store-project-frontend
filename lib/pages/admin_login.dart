@@ -124,148 +124,215 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8E1), // Soft sari-sari yellow
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFFC107),
-        title: const Text(
-          "Admin Login",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.redAccent, Colors.red[300]!],
+          ),
         ),
-        centerTitle: true,
-        elevation: 3,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(24),
-            child: Card(
-              color: Colors.white,
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.admin_panel_settings,
-                        size: 80,
-                        color: Colors.redAccent,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 450),
+                margin: const EdgeInsets.all(24),
+                child: Card(
+                  elevation: 20,
+                  shadowColor: Colors.black45,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.white, Colors.red[50]!],
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Welcome, Admin!",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.brown,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Please sign in to manage your store dashboard.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black87),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // 🧍 Username Field
-                      TextFormField(
-                        controller: usernameController,
-                        decoration: InputDecoration(
-                          labelText: "Enter Username",
-                          prefixIcon: const Icon(Icons.person),
-                          filled: true,
-                          fillColor: const Color(0xFFFFF3E0),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        validator: (value) =>
-                            value!.isEmpty ? "Username required" : null,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // 🔐 Password Field with Eye Toggle
-                      TextFormField(
-                        controller: passwordController,
-                        obscureText: !_isPasswordVisible,
-                        decoration: InputDecoration(
-                          labelText: "Enter Password",
-                          prefixIcon: const Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+                    ),
+                    padding: const EdgeInsets.all(32),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Icon with gradient background
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Colors.redAccent, Colors.red],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.red.withOpacity(0.4),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFFFF3E0),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        validator: (value) =>
-                            value!.isEmpty ? "Password required" : null,
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // 🔘 Login Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              loginAdmin();
-                            }
-                          },
-                          icon: const Icon(Icons.login),
-                          label: const Text(
-                            "Login",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 14,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            child: const Icon(
+                              Icons.admin_panel_settings,
+                              size: 50,
+                              color: Colors.white,
                             ),
                           ),
-                        ),
-                      ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.arrow_back),
+                                color: Colors.redAccent,
+                                tooltip: 'Back',
+                              ),
+                              const SizedBox(width: 40),
+                            ],
+                          ),
+                          const Text(
+                            "Admin Portal",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF212121),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Sign in to manage your store",
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
 
-                      const SizedBox(height: 16),
+                          // Username Field
+                          TextFormField(
+                            controller: usernameController,
+                            decoration: InputDecoration(
+                              labelText: "Username",
+                              hintText: "Enter your username",
+                              prefixIcon: const Icon(
+                                Icons.person_outlined,
+                                color: Colors.redAccent,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            validator: (value) =>
+                                value!.isEmpty ? "Username required" : null,
+                          ),
 
-                      // 🔙 Back to Home
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Back to Home",
-                          style: TextStyle(color: Colors.brown),
-                        ),
+                          const SizedBox(height: 20),
+
+                          // Password Field with Eye Toggle
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              labelText: "Password",
+                              hintText: "Enter your password",
+                              prefixIcon: const Icon(
+                                Icons.lock_outlined,
+                                color: Colors.redAccent,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 2,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey[600],
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) =>
+                                value!.isEmpty ? "Password required" : null,
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // Login Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  loginAdmin();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                foregroundColor: Colors.white,
+                                elevation: 4,
+                                shadowColor: Colors.red.withOpacity(0.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                "Sign In",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
