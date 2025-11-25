@@ -165,11 +165,14 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     try {
       UserCredential userCredential;
 
+      // Step 1: Firebase Authentication
+      print("🔵 Step 1: Starting Google Sign-In...");
       if (kIsWeb) {
         userCredential = await _auth.signInWithPopup(GoogleAuthProvider());
       } else {
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
         if (googleUser == null) {
+          print("❌ User cancelled Google Sign-In");
           setState(() => loading = false);
           return;
         }
@@ -184,6 +187,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
 
       final user = userCredential.user;
       if (user == null) {
+        print("❌ No user returned from Firebase");
         setState(() => loading = false);
         ScaffoldMessenger.of(
           context,
@@ -196,7 +200,12 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       final email = (user.email ?? "").toString();
       final photoUrl = (user.photoURL ?? "").toString();
 
+      print("✅ Firebase auth successful");
+      print("   Name: $name");
+      print("   Email: $email");
+
       if (email.isEmpty) {
+        print("❌ Email is empty");
         setState(() => loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Google account has no email")),
@@ -204,15 +213,22 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         return;
       }
 
-      // BACKEND LOGIN
+      // Step 2: Try to login to backend
+      print("🔵 Step 2: Attempting backend login...");
       final loginResp = await http.post(
         Uri.parse("http://localhost:5000/api/customer/google-login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"name": name, "email": email, "photoUrl": photoUrl}),
       );
 
+      print("   Login response status: ${loginResp.statusCode}");
+      print("   Login response body: ${loginResp.body}");
+
       if (loginResp.statusCode == 200) {
+        print("✅ Login successful!");
+        setState(() => loading = false);
         final res = jsonDecode(loginResp.body);
+        print("   Customer data: ${res["customer"]}");
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return;
@@ -220,8 +236,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         return;
       }
 
-      // REGISTER IF NOT FOUND
+      // Step 3: Register if not found
       if (loginResp.statusCode == 404) {
+        print("🔵 Step 3: User not found, registering...");
         final registerResp = await http.post(
           Uri.parse("http://localhost:5000/api/customer/google-register"),
           headers: {"Content-Type": "application/json"},
@@ -232,36 +249,75 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
           }),
         );
 
+        print("   Register response status: ${registerResp.statusCode}");
+        print("   Register response body: ${registerResp.body}");
+
         if (registerResp.statusCode == 201 || registerResp.statusCode == 200) {
+          print("✅ Registration successful!");
+          setState(() => loading = false);
           final res = jsonDecode(registerResp.body);
+          print("   Customer data: ${res["customer"]}");
           _showSuccessModal();
           await Future.delayed(const Duration(seconds: 2));
           if (!mounted) return;
           _navigateToDashboard(res["customer"]);
+          return;
+        } else {
+          print("❌ Registration failed");
+          setState(() => loading = false);
+          final errorMsg =
+              jsonDecode(registerResp.body)["message"] ?? "Registration failed";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Registration error: $errorMsg"),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          return;
         }
       }
 
+      // If we reach here, login failed with a status other than 200 or 404
+      print("❌ Login failed with status: ${loginResp.statusCode}");
       setState(() => loading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Login error: ${loginResp.body}")));
-    } catch (e) {
+      final errorMsg = jsonDecode(loginResp.body)["message"] ?? "Login failed";
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login error: $errorMsg"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } catch (e, stackTrace) {
+      print("❌ Error during Google Sign-In:");
+      print("   Error: $e");
+      print("   Stack trace: $stackTrace");
       setState(() => loading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Google sign-in error: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Google sign-in error: $e"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
   // ---------------- Navigate to Dashboard ----------------
   void _navigateToDashboard(dynamic customer) {
-    final customerId = customer?["_id"]?.toString() ?? "";
+    // Backend returns "id" not "_id"
+    final customerId = customer?["id"]?.toString() ?? "";
     final customerName = (customer?["name"] ?? customer?["email"] ?? "Customer")
         .toString();
+
+    print("🔵 Navigating to dashboard...");
+    print("   Customer ID: $customerId");
+    print("   Customer Name: $customerName");
 
     // Save userId to localStorage safely
     if (customerId.isNotEmpty) {
       html.window.localStorage['customerId'] = customerId;
+      print("   ✅ Customer ID saved to localStorage");
+    } else {
+      print("   ❌ Customer ID is empty, not saved to localStorage");
     }
 
     Navigator.pushReplacement(
