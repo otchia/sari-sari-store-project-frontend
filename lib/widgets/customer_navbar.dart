@@ -207,6 +207,65 @@ class CustomerSidebar extends StatelessWidget {
     );
   }
 
+  Future<void> _showLogoutModal(BuildContext context) async {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: '',
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return Opacity(
+          opacity: anim1.value,
+          child: Transform.scale(
+            scale: 0.8 + (anim1.value * 0.2),
+            child: Center(
+              child: Card(
+                color: Colors.white,
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green, size: 80),
+                      SizedBox(height: 16),
+                      Text(
+                        "Logout Successful!",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF212121),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        "See you again soon!",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    // Wait for 1.5 seconds then close modal and logout
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (context.mounted) {
+      Navigator.of(context).pop();
+      if (onLogout != null) {
+        onLogout!();
+      }
+    }
+  }
+
   Widget _buildBottomSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -289,7 +348,7 @@ class CustomerSidebar extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: onLogout,
+                    onPressed: () => _showLogoutModal(context),
                     icon: const Icon(Icons.logout, size: 20),
                     label: const Text(
                       'Logout',
