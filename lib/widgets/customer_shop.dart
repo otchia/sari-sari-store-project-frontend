@@ -200,12 +200,7 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
               );
 
               return GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProductDetail(product: product),
-                  ),
-                ),
+                onTap: () => ProductDetailModal.show(context, product),
                 child: Card(
                   elevation: 3,
                   shape: RoundedRectangleBorder(
