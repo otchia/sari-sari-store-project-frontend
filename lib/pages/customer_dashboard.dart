@@ -3,6 +3,8 @@ import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import '../widgets/cart_widget.dart';
 import 'dart:html' as html;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CustomerDashboardPage extends StatefulWidget {
   final String customerName;
@@ -24,10 +26,129 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   String selectedCategory = "All";
   late bool isLoggedIn;
 
+  // Store status
+  bool isPhysicalOpen = false;
+  bool isOnlineOpen = false;
+  bool isDeliveryActive = false;
+  bool loadingStoreStatus = true;
+
   @override
   void initState() {
     super.initState();
     isLoggedIn = html.window.localStorage.containsKey('customerId');
+    _fetchStoreStatus();
+
+    // Refresh store status every 30 seconds
+    Future.delayed(Duration.zero, () {
+      _startPeriodicRefresh();
+    });
+  }
+
+  void _startPeriodicRefresh() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 30));
+      if (mounted) {
+        _fetchStoreStatus();
+        return true; // Continue the loop
+      }
+      return false; // Stop if widget is disposed
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _fetchStoreStatus() async {
+    try {
+      // Get adminId from localStorage (should be set when admin logs in)
+      String? adminId = html.window.localStorage['adminId'];
+
+      // Fallback to hardcoded admin ID if not in localStorage
+      if (adminId == null || adminId.isEmpty) {
+        adminId =
+            '690af31c412f5e89aa047d7d'; // Your actual admin ID from MongoDB
+        print("⚠️ Using hardcoded adminId for customer dashboard");
+      }
+
+      print("🔵 Fetching store status for customer dashboard...");
+      print("   Using adminId: $adminId");
+
+      final response = await http.get(
+        Uri.parse("http://localhost:5000/api/store-settings?adminId=$adminId"),
+      );
+
+      print("   Response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['settings'];
+        final wasOpen = isPhysicalOpen || isOnlineOpen || isDeliveryActive;
+
+        setState(() {
+          isPhysicalOpen = data['physicalStatus'] ?? false;
+          isOnlineOpen = data['onlineStatus'] ?? false;
+          isDeliveryActive = data['deliveryStatus'] ?? false;
+          loadingStoreStatus = false;
+        });
+
+        final isNowOpen = isPhysicalOpen || isOnlineOpen || isDeliveryActive;
+
+        // If store closed while customer was browsing
+        if (wasOpen && !isNowOpen && mounted) {
+          _showStoreClosedWarning();
+        }
+
+        print("✅ Store status loaded for customer dashboard");
+      } else {
+        setState(() => loadingStoreStatus = false);
+        print("❌ Failed to load store status");
+      }
+    } catch (e) {
+      setState(() => loadingStoreStatus = false);
+      print("❌ Error fetching store status: $e");
+    }
+  }
+
+  void _showStoreClosedWarning() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange.shade700, size: 28),
+            const SizedBox(width: 12),
+            const Text("Store Has Closed"),
+          ],
+        ),
+        content: const Text(
+          "All store services are now closed. You can continue browsing, but orders cannot be placed at this time.",
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Continue Browsing",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Go back to login
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFC107),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Exit"),
+          ),
+        ],
+      ),
+    );
   }
 
   final List<String> categories = [
@@ -243,7 +364,70 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               ),
             ),
           ],
+
+          // Store Status Badges
+          const SizedBox(width: 16),
+          if (!loadingStoreStatus) ...[
+            _buildStatusBadge(
+              "Physical Store",
+              isPhysicalOpen,
+              Icons.store_mall_directory,
+            ),
+            const SizedBox(width: 8),
+            _buildStatusBadge("Online", isOnlineOpen, Icons.shopping_cart),
+            const SizedBox(width: 8),
+            _buildStatusBadge(
+              "Delivery",
+              isDeliveryActive,
+              Icons.delivery_dining,
+            ),
+          ] else
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String label, bool isActive, IconData icon) {
+    return Tooltip(
+      message: isActive ? "$label is available" : "$label is closed",
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              isActive ? Colors.green : Colors.grey,
+              isActive ? Colors.green.shade700 : Colors.grey.shade700,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: (isActive ? Colors.green : Colors.grey).withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -274,12 +458,113 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   Widget _getPageWidget() {
     switch (selectedIndex) {
       case 0:
-        return CustomerShopFixed(
-          searchQuery: searchQuery,
-          selectedCategory: selectedCategory,
+        // Show shop with status banner if needed
+        return Column(
+          children: [
+            // Status Banner
+            if (!loadingStoreStatus && !isOnlineOpen)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade100, Colors.orange.shade50],
+                  ),
+                  border: Border(
+                    bottom: BorderSide(color: Colors.orange.shade300, width: 2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.orange.shade800),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Online Store Currently Closed",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isPhysicalOpen
+                                ? "Visit our physical store for in-person shopping"
+                                : "All services are currently unavailable",
+                            style: TextStyle(
+                              color: Colors.orange.shade800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Shop Content
+            Expanded(
+              child: CustomerShopFixed(
+                searchQuery: searchQuery,
+                selectedCategory: selectedCategory,
+              ),
+            ),
+          ],
         );
       case 1:
-        return const CartWidget();
+        return Column(
+          children: [
+            // Delivery Status Banner
+            if (!loadingStoreStatus && !isDeliveryActive)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade100, Colors.blue.shade50],
+                  ),
+                  border: Border(
+                    bottom: BorderSide(color: Colors.blue.shade300, width: 2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade800),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Delivery Service Currently Unavailable",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isPhysicalOpen
+                                ? "Please visit our physical store for pickup"
+                                : "All services are currently closed",
+                            style: TextStyle(
+                              color: Colors.blue.shade800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Cart Content
+            const Expanded(child: CartWidget()),
+          ],
+        );
       case 2:
         return _placeholderPage(
           "Wishlist",

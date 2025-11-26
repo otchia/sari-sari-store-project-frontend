@@ -128,10 +128,19 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       final res = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        print("✅ Email/Password login successful!");
+        print("   Full response: $res");
+        print("   Customer data in response: ${res["customer"]}");
+
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
+
+        // Close the success modal
         if (!mounted) return;
-        _navigateToDashboard(res["customer"]);
+        Navigator.of(context).pop(); // Dismiss success modal
+
+        // Now navigate to dashboard with store check
+        await _navigateToDashboard(res["customer"]);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -225,14 +234,19 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       print("   Login response body: ${loginResp.body}");
 
       if (loginResp.statusCode == 200) {
-        print("✅ Login successful!");
+        print("✅ Google login successful!");
         setState(() => loading = false);
         final res = jsonDecode(loginResp.body);
         print("   Customer data: ${res["customer"]}");
         _showSuccessModal();
         await Future.delayed(const Duration(seconds: 2));
+
+        // Close the success modal
         if (!mounted) return;
-        _navigateToDashboard(res["customer"]);
+        Navigator.of(context).pop(); // Dismiss success modal
+
+        // Now navigate to dashboard with store check
+        await _navigateToDashboard(res["customer"]);
         return;
       }
 
@@ -253,14 +267,19 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         print("   Register response body: ${registerResp.body}");
 
         if (registerResp.statusCode == 201 || registerResp.statusCode == 200) {
-          print("✅ Registration successful!");
+          print("✅ Google registration successful!");
           setState(() => loading = false);
           final res = jsonDecode(registerResp.body);
           print("   Customer data: ${res["customer"]}");
           _showSuccessModal();
           await Future.delayed(const Duration(seconds: 2));
+
+          // Close the success modal
           if (!mounted) return;
-          _navigateToDashboard(res["customer"]);
+          Navigator.of(context).pop(); // Dismiss success modal
+
+          // Now navigate to dashboard with store check
+          await _navigateToDashboard(res["customer"]);
           return;
         } else {
           print("❌ Registration failed");
@@ -301,16 +320,223 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     }
   }
 
+  // ---------------- Check Store Status ----------------
+  Future<bool> _checkStoreStatus() async {
+    try {
+      print("🔵 Checking store status before login...");
+      print("===============================================");
+
+      // 🔧 CONFIGURATION: Get your admin ID from MongoDB and paste it here
+      // You can get this by logging in as admin and checking the console
+      String? adminId = html.window.localStorage['adminId'];
+
+      // If no adminId in localStorage, use this hardcoded one
+      if (adminId == null || adminId.isEmpty) {
+        adminId =
+            '690af31c412f5e89aa047d7d'; // Your actual admin ID from MongoDB
+        print("⚠️ Using hardcoded adminId from code");
+      } else {
+        print("✅ Found adminId in localStorage: $adminId");
+      }
+
+      print("   Will check store status with adminId: $adminId");
+
+      print("===============================================");
+
+      final response = await http.get(
+        Uri.parse("http://localhost:5000/api/store-settings?adminId=$adminId"),
+      );
+
+      print("");
+      print("📡 API Response:");
+      print("   Status: ${response.statusCode}");
+      print("   Body: ${response.body}");
+      print("");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['settings'];
+        final isPhysicalOpen = data['physicalStatus'] ?? false;
+        final isOnlineOpen = data['onlineStatus'] ?? false;
+        final isDeliveryActive = data['deliveryStatus'] ?? false;
+
+        final isAnyServiceOpen =
+            isPhysicalOpen || isOnlineOpen || isDeliveryActive;
+
+        print("🏪 Store Status:");
+        print("   Physical Store: ${isPhysicalOpen ? '✅ OPEN' : '❌ CLOSED'}");
+        print("   Online Store: ${isOnlineOpen ? '✅ OPEN' : '❌ CLOSED'}");
+        print(
+          "   Delivery: ${isDeliveryActive ? '✅ AVAILABLE' : '❌ UNAVAILABLE'}",
+        );
+        print("");
+        print(
+          "🔍 Result: ${isAnyServiceOpen ? '✅ ALLOW LOGIN' : '❌ BLOCK LOGIN'}",
+        );
+        print("===============================================");
+
+        return isAnyServiceOpen;
+      } else if (response.statusCode == 404) {
+        print("❌ Admin ID not found in database!");
+        print("   The adminId '$adminId' doesn't exist");
+        print("   Please check your admin ID and try again");
+        print("===============================================");
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Configuration Error: Invalid admin ID. Please contact support.",
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+        return false;
+      } else {
+        print("❌ Failed to fetch store status (${response.statusCode})");
+        print("   Response: ${response.body}");
+        print("===============================================");
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Unable to verify store status. Please try again."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return false;
+      }
+    } catch (e) {
+      print("❌ EXCEPTION during store status check:");
+      print("   Error: $e");
+      print("===============================================");
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Connection error: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
   // ---------------- Navigate to Dashboard ----------------
-  void _navigateToDashboard(dynamic customer) {
-    // Backend returns "id" not "_id"
-    final customerId = customer?["id"]?.toString() ?? "";
+  Future<void> _navigateToDashboard(dynamic customer) async {
+    print("🔵 Navigating to dashboard...");
+    print("   Raw customer data: $customer");
+    print("   Customer type: ${customer.runtimeType}");
+
+    // Backend might return "id", "_id", or nested in customer object
+    final customerId =
+        customer?["id"]?.toString() ??
+        customer?["_id"]?.toString() ??
+        customer?["customerId"]?.toString() ??
+        "";
     final customerName = (customer?["name"] ?? customer?["email"] ?? "Customer")
         .toString();
 
-    print("🔵 Navigating to dashboard...");
-    print("   Customer ID: $customerId");
-    print("   Customer Name: $customerName");
+    print("   Parsed Customer ID: $customerId");
+    print("   Parsed Customer Name: $customerName");
+
+    // Check if store is open before allowing access
+    final isStoreOpen = await _checkStoreStatus();
+
+    if (!isStoreOpen) {
+      print("❌ Store is closed, denying access");
+
+      // Show store closed modal
+      if (!mounted) return;
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: '',
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
+        transitionBuilder: (context, anim1, anim2, child) {
+          return Opacity(
+            opacity: anim1.value,
+            child: Transform.scale(
+              scale: 0.8 + (anim1.value * 0.2),
+              child: Center(
+                child: Card(
+                  color: Colors.white,
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.store_outlined,
+                            color: Colors.red.shade700,
+                            size: 64,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          "Store Currently Closed",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF212121),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "All services are temporarily unavailable.\nPlease check back later!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFC107),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "OK",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
 
     // Save userId to localStorage safely
     if (customerId.isNotEmpty) {
@@ -320,6 +546,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
       print("   ❌ Customer ID is empty, not saved to localStorage");
     }
 
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
