@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'admin_dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:html' as html;
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -34,6 +35,33 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       final res = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        // 💾 Save admin info to localStorage
+        final adminId = res['admin']?['_id']?.toString() ?? 
+                       res['admin']?['id']?.toString() ?? 
+                       res['_id']?.toString() ?? 
+                       res['id']?.toString() ?? '';
+        
+        final username = res['admin']?['username']?.toString() ?? 
+                        res['username']?.toString() ?? 
+                        usernameController.text;
+        
+        final storeName = res['storeName'] ?? 
+                         res['admin']?['storeName'] ?? 
+                         usernameController.text;
+
+        if (adminId.isNotEmpty) {
+          html.window.localStorage['adminId'] = adminId;
+          html.window.localStorage['adminUsername'] = username;
+          html.window.localStorage['storeName'] = storeName;
+          print("✅ Admin ID saved to localStorage: $adminId");
+          print("✅ Admin Username saved: $username");
+        } else {
+          print("⚠️ Warning: Admin ID is empty!");
+        }
+
+        print("📦 Login response: $res");
+        print("🏪 Store Name: $storeName");
+
         // ✅ Animated success popup
         showGeneralDialog(
           context: context,
@@ -99,7 +127,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           context,
           MaterialPageRoute(
             builder: (context) => AdminDashboardPage(
-              storeName: res['storeName'] ?? usernameController.text,
+              storeName: storeName,
             ),
           ),
         );

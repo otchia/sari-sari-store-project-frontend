@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:html' as html;
 import '../widgets/admin_inventory.dart';
 import '../widgets/admin_store_settings.dart';
 
@@ -12,8 +15,12 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
-  bool isStoreOpen = true;
+  bool isPhysicalOpen = false;
+  bool isOnlineOpen = false;
+  bool isDeliveryActive = false;
   int selectedIndex = 0;
+  String adminUsername = '';
+  bool loadingSettings = true;
 
   final List<String> menuItems = [
     "Store Status",
@@ -22,6 +29,85 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     "Chat",
     "Analytics",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdminInfo();
+    _fetchStoreSettings();
+  }
+
+  void _loadAdminInfo() {
+    try {
+      adminUsername = html.window.localStorage['adminUsername'] ?? 'Admin';
+      print("👤 Loaded admin username: $adminUsername");
+    } catch (e) {
+      print("Error loading admin info: $e");
+      adminUsername = 'Admin';
+    }
+  }
+
+  Future<void> _fetchStoreSettings({bool showRefreshIndicator = false}) async {
+    if (showRefreshIndicator) {
+      setState(() => loadingSettings = true);
+    }
+
+    try {
+      final adminId = html.window.localStorage['adminId'];
+      if (adminId == null || adminId.isEmpty) {
+        print("❌ No adminId found");
+        setState(() => loadingSettings = false);
+        return;
+      }
+
+      print("🔵 Fetching store settings for dashboard...");
+      final response = await http.get(
+        Uri.parse("http://localhost:5000/api/store-settings?adminId=$adminId"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['settings'];
+        setState(() {
+          isPhysicalOpen = data['physicalStatus'] ?? false;
+          isOnlineOpen = data['onlineStatus'] ?? false;
+          isDeliveryActive = data['deliveryStatus'] ?? false;
+          loadingSettings = false;
+        });
+        print("✅ Store settings loaded for dashboard");
+
+        // Show a brief success indicator
+        if (showRefreshIndicator && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text("Dashboard updated!"),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(milliseconds: 1500),
+            ),
+          );
+        }
+      } else {
+        setState(() => loadingSettings = false);
+        print("❌ Failed to load store settings");
+      }
+    } catch (e) {
+      setState(() => loadingSettings = false);
+      print("❌ Error fetching store settings: $e");
+    }
+  }
+
+  // Refresh settings when coming back to Store Status tab
+  void _onTabChanged(int index) {
+    setState(() => selectedIndex = index);
+    if (index == 0) {
+      _fetchStoreSettings(); // Refresh when viewing Store Status
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,45 +184,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  isStoreOpen ? Colors.green : Colors.red,
-                  isStoreOpen ? Colors.green.shade700 : Colors.red.shade700,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: (isStoreOpen ? Colors.green : Colors.red).withOpacity(
-                    0.3,
-                  ),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+          // Store Status Badges
+          if (!loadingSettings) ...[
+            _buildStatusBadge(
+              "Physical",
+              isPhysicalOpen,
+              Icons.store_mall_directory,
             ),
-            child: Row(
-              children: [
-                Icon(
-                  isStoreOpen ? Icons.store : Icons.store_outlined,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  isStoreOpen ? "Store Open" : "Store Closed",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+            const SizedBox(width: 8),
+            _buildStatusBadge("Online", isOnlineOpen, Icons.shopping_cart),
+            const SizedBox(width: 8),
+            _buildStatusBadge(
+              "Delivery",
+              isDeliveryActive,
+              Icons.delivery_dining,
             ),
-          ),
+          ] else
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
         ],
       ),
     );
@@ -247,9 +315,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               color: Colors.white.withOpacity(0.25),
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Text(
-              'Admin Panel',
-              style: TextStyle(
+            child: Text(
+              adminUsername.isNotEmpty ? adminUsername : 'Admin Panel',
+              style: const TextStyle(
                 fontSize: 13,
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -356,6 +424,43 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 
+  Widget _buildStatusBadge(String label, bool isActive, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            isActive ? Colors.green : Colors.grey,
+            isActive ? Colors.green.shade700 : Colors.grey.shade700,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (isActive ? Colors.green : Colors.grey).withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNavButton(int index, String label) {
     final bool isSelected = selectedIndex == index;
 
@@ -364,11 +469,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            setState(() {
-              selectedIndex = index;
-            });
-          },
+          onTap: () => _onTabChanged(index),
           borderRadius: BorderRadius.circular(14),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -444,7 +545,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget _buildPageContent() {
     switch (selectedIndex) {
       case 0:
-        return const AdminStoreSettings();
+        return AdminStoreSettings(
+          onSettingsChanged: () {
+            print("🔄 Settings changed, refreshing dashboard...");
+            _fetchStoreSettings(showRefreshIndicator: true);
+          },
+        );
       case 1:
         return _placeholderPage("Orders", Icons.shopping_bag_rounded);
       case 2:
@@ -459,12 +565,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildStoreStatus() {
+    if (loadingSettings) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD32F2F)),
+        ),
+      );
+    }
+
+    final anyStoreOpen = isPhysicalOpen || isOnlineOpen;
+
     return Padding(
       padding: const EdgeInsets.all(32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
+          // Overall Store Status Card
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
@@ -488,14 +605,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: isStoreOpen
+                          colors: anyStoreOpen
                               ? [Colors.green, Colors.green.shade700]
-                              : [Colors.red, Colors.red.shade700],
+                              : [Colors.grey, Colors.grey.shade700],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: (isStoreOpen ? Colors.green : Colors.red)
+                            color: (anyStoreOpen ? Colors.green : Colors.grey)
                                 .withOpacity(0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
@@ -503,7 +620,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         ],
                       ),
                       child: Icon(
-                        isStoreOpen ? Icons.lock_open : Icons.lock,
+                        anyStoreOpen ? Icons.lock_open : Icons.lock,
                         color: Colors.white,
                         size: 32,
                       ),
@@ -514,7 +631,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Store Status Control",
+                            "Store Status Overview",
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -523,9 +640,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            isStoreOpen
+                            anyStoreOpen
                                 ? "Your store is currently accepting orders"
-                                : "Your store is currently closed",
+                                : "All services are currently closed",
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.grey[600],
@@ -536,50 +653,33 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Toggle Store Status:",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF212121),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          isStoreOpen ? "OPEN" : "CLOSED",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: isStoreOpen ? Colors.green : Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Transform.scale(
-                          scale: 1.2,
-                          child: Switch(
-                            value: isStoreOpen,
-                            activeColor: Colors.green,
-                            inactiveThumbColor: Colors.red,
-                            onChanged: (value) {
-                              setState(() {
-                                isStoreOpen = value;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
               ],
             ),
+          ),
+          const SizedBox(height: 24),
+          // Individual Status Cards
+          _buildStatusCard(
+            title: "Physical Store",
+            subtitle: "In-person shopping at your location",
+            icon: Icons.store_mall_directory,
+            isActive: isPhysicalOpen,
+            activeColor: Colors.green,
+          ),
+          const SizedBox(height: 16),
+          _buildStatusCard(
+            title: "Online Store",
+            subtitle: "Accept orders through the app",
+            icon: Icons.shopping_cart,
+            isActive: isOnlineOpen,
+            activeColor: Colors.blue,
+          ),
+          const SizedBox(height: 16),
+          _buildStatusCard(
+            title: "Delivery Service",
+            subtitle: "Offer delivery to customers",
+            icon: Icons.delivery_dining,
+            isActive: isDeliveryActive,
+            activeColor: Colors.orange,
           ),
           const SizedBox(height: 32),
           Container(
@@ -595,11 +695,83 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    "Status changes will be reflected in real-time once connected to backend.",
+                    "To change these settings, go to 'Store Status' in the sidebar menu.",
                     style: TextStyle(color: Colors.blue.shade900, fontSize: 14),
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isActive,
+    required Color activeColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isActive ? activeColor.withOpacity(0.1) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isActive ? activeColor.withOpacity(0.3) : Colors.grey[300]!,
+          width: 2,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isActive ? activeColor : Colors.grey[400],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isActive
+                        ? HSLColor.fromColor(
+                            activeColor,
+                          ).withLightness(0.3).toColor()
+                        : Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isActive ? activeColor : Colors.grey,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              isActive ? "ACTIVE" : "CLOSED",
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
