@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 import '../widgets/admin_inventory.dart';
 import '../widgets/admin_store_settings.dart';
+import '../widgets/admin_orders.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   final String storeName;
@@ -552,7 +553,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           },
         );
       case 1:
-        return _placeholderPage("Orders", Icons.shopping_bag_rounded);
+        return const AdminOrders();
       case 2:
         return const AdminInventory();
       case 3:

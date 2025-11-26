@@ -431,10 +431,18 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     print("   Raw customer data: $customer");
     print("   Customer type: ${customer.runtimeType}");
 
+    // DEBUG: Print all keys in customer object
+    if (customer is Map) {
+      print("   Available keys in customer: ${customer.keys.toList()}");
+      print("   customer['id'] = ${customer['id']}");
+      print("   customer['_id'] = ${customer['_id']}");
+      print("   customer['customerId'] = ${customer['customerId']}");
+    }
+
     // Backend might return "id", "_id", or nested in customer object
     final customerId =
-        customer?["id"]?.toString() ??
         customer?["_id"]?.toString() ??
+        customer?["id"]?.toString() ??
         customer?["customerId"]?.toString() ??
         "";
     final customerName = (customer?["name"] ?? customer?["email"] ?? "Customer")
@@ -539,9 +547,14 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     }
 
     // Save userId to localStorage safely
+    print("   🔍 Customer ID to save: '$customerId'");
     if (customerId.isNotEmpty) {
       html.window.localStorage['customerId'] = customerId;
       print("   ✅ Customer ID saved to localStorage");
+      
+      // Verify it was saved
+      final savedId = html.window.localStorage['customerId'];
+      print("   🔍 Verification - Retrieved from localStorage: '$savedId'");
     } else {
       print("   ❌ Customer ID is empty, not saved to localStorage");
     }
