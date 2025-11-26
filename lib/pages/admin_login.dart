@@ -36,18 +36,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
       if (response.statusCode == 200) {
         // 💾 Save admin info to localStorage
-        final adminId = res['admin']?['_id']?.toString() ?? 
-                       res['admin']?['id']?.toString() ?? 
-                       res['_id']?.toString() ?? 
-                       res['id']?.toString() ?? '';
-        
-        final username = res['admin']?['username']?.toString() ?? 
-                        res['username']?.toString() ?? 
-                        usernameController.text;
-        
-        final storeName = res['storeName'] ?? 
-                         res['admin']?['storeName'] ?? 
-                         usernameController.text;
+        final adminId =
+            res['admin']?['_id']?.toString() ??
+            res['admin']?['id']?.toString() ??
+            res['_id']?.toString() ??
+            res['id']?.toString() ??
+            '';
+
+        final username =
+            res['admin']?['username']?.toString() ??
+            res['username']?.toString() ??
+            usernameController.text;
+
+        final storeName =
+            res['storeName'] ??
+            res['admin']?['storeName'] ??
+            usernameController.text;
 
         if (adminId.isNotEmpty) {
           html.window.localStorage['adminId'] = adminId;
@@ -126,9 +130,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminDashboardPage(
-              storeName: storeName,
-            ),
+            builder: (context) => AdminDashboardPage(storeName: storeName),
           ),
         );
       } else {

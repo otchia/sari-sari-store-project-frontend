@@ -141,7 +141,7 @@ class _AdminOrdersState extends State<AdminOrders>
 
       if (response.statusCode == 200) {
         print("✅ Order marked as ready for pickup");
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -170,10 +170,7 @@ class _AdminOrdersState extends State<AdminOrders>
     } catch (e) {
       print("❌ Error marking ready: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
     }
   }
@@ -193,7 +190,7 @@ class _AdminOrdersState extends State<AdminOrders>
 
       if (response.statusCode == 200) {
         print("✅ Order marked as out for delivery");
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -236,7 +233,7 @@ class _AdminOrdersState extends State<AdminOrders>
 
       if (response.statusCode == 200) {
         print("✅ Order completed");
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -279,7 +276,7 @@ class _AdminOrdersState extends State<AdminOrders>
 
       if (response.statusCode == 200) {
         print("✅ Order cancelled");
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -354,14 +351,14 @@ class _AdminOrdersState extends State<AdminOrders>
                   ),
                 )
               : orders.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      itemCount: orders.length,
-                      itemBuilder: (context, index) {
-                        return _buildOrderCard(orders[index]);
-                      },
-                    ),
+              ? _buildEmptyState()
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  itemCount: orders.length,
+                  itemBuilder: (context, index) {
+                    return _buildOrderCard(orders[index]);
+                  },
+                ),
         ),
       ],
     );
@@ -413,7 +410,12 @@ class _AdminOrdersState extends State<AdminOrders>
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.all(20),
@@ -466,11 +468,7 @@ class _AdminOrdersState extends State<AdminOrders>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             "No orders yet",
@@ -483,10 +481,7 @@ class _AdminOrdersState extends State<AdminOrders>
           const SizedBox(height: 8),
           Text(
             "Orders will appear here when customers place them",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
       ),
@@ -496,9 +491,12 @@ class _AdminOrdersState extends State<AdminOrders>
   // ================= ORDER CARD =================
   Widget _buildOrderCard(dynamic order) {
     final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '';
-    final shortId = orderId.length > 8 ? orderId.substring(orderId.length - 8) : orderId;
+    final shortId = orderId.length > 8
+        ? orderId.substring(orderId.length - 8)
+        : orderId;
     final customerName = order['customerName']?.toString() ?? 'Guest';
-    final totalAmount = double.tryParse(order['totalAmount']?.toString() ?? "0") ?? 0;
+    final totalAmount =
+        double.tryParse(order['totalAmount']?.toString() ?? "0") ?? 0;
     final status = order['status']?.toString() ?? 'pending';
     final deliveryType = order['deliveryType']?.toString() ?? 'pickup';
     final paymentMethod = order['paymentMethod']?.toString() ?? 'cash';
@@ -683,7 +681,11 @@ class _AdminOrdersState extends State<AdminOrders>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on, color: Colors.grey[600], size: 20),
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -706,7 +708,11 @@ class _AdminOrdersState extends State<AdminOrders>
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  Icon(Icons.phone, color: Colors.grey[600], size: 16),
+                                  Icon(
+                                    Icons.phone,
+                                    color: Colors.grey[600],
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
                                     order['deliveryContactNumber'].toString(),
@@ -922,7 +928,9 @@ class _AdminOrdersState extends State<AdminOrders>
   // ================= ORDER DETAILS DIALOG =================
   void _showOrderDetails(dynamic order) {
     final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '';
-    final shortId = orderId.length > 8 ? orderId.substring(orderId.length - 8) : orderId;
+    final shortId = orderId.length > 8
+        ? orderId.substring(orderId.length - 8)
+        : orderId;
     final items = order['items'] as List<dynamic>? ?? [];
     final deliveryType = order['deliveryType']?.toString() ?? 'pickup';
 
@@ -941,7 +949,11 @@ class _AdminOrdersState extends State<AdminOrders>
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.receipt_long, color: Colors.brown, size: 28),
+                      const Icon(
+                        Icons.receipt_long,
+                        color: Colors.brown,
+                        size: 28,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -999,7 +1011,9 @@ class _AdminOrdersState extends State<AdminOrders>
                   _buildDetailRow(
                     "Delivery Type",
                     deliveryType == "pickup" ? "Pick-up" : "Delivery",
-                    deliveryType == "pickup" ? Icons.store : Icons.delivery_dining,
+                    deliveryType == "pickup"
+                        ? Icons.store
+                        : Icons.delivery_dining,
                   ),
                   _buildDetailRow(
                     "Payment Method",
@@ -1024,7 +1038,11 @@ class _AdminOrdersState extends State<AdminOrders>
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.location_on, color: Colors.grey[600], size: 20),
+                        Icon(
+                          Icons.location_on,
+                          color: Colors.grey[600],
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -1046,7 +1064,11 @@ class _AdminOrdersState extends State<AdminOrders>
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    Icon(Icons.phone, color: Colors.grey[600], size: 16),
+                                    Icon(
+                                      Icons.phone,
+                                      color: Colors.grey[600],
+                                      size: 16,
+                                    ),
                                     const SizedBox(width: 6),
                                     Text(
                                       order['deliveryContactNumber'].toString(),
@@ -1056,7 +1078,9 @@ class _AdminOrdersState extends State<AdminOrders>
                                 ),
                               ],
                               if (order['deliveryNotes'] != null &&
-                                  order['deliveryNotes'].toString().isNotEmpty) ...[
+                                  order['deliveryNotes']
+                                      .toString()
+                                      .isNotEmpty) ...[
                                 const SizedBox(height: 8),
                                 Text(
                                   "Notes: ${order['deliveryNotes']}",
@@ -1147,7 +1171,10 @@ class _AdminOrdersState extends State<AdminOrders>
                     ),
                     child: const Text(
                       "Close",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -1168,18 +1195,10 @@ class _AdminOrdersState extends State<AdminOrders>
           const SizedBox(width: 12),
           Text(
             "$label:",
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
@@ -1244,4 +1263,3 @@ class _AdminOrdersState extends State<AdminOrders>
     );
   }
 }
-

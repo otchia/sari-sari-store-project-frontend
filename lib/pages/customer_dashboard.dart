@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import '../widgets/cart_widget.dart';
+import '../widgets/customer_chat.dart';
 import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -515,6 +516,14 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
           ],
         );
       case 1:
+        // Check if user is logged in for cart access
+        if (!isLoggedIn) {
+          return _buildLoginRequiredPage(
+            "Shopping Cart",
+            Icons.shopping_cart,
+            "Please log in to view your shopping cart and checkout",
+          );
+        }
         return Column(
           children: [
             // Delivery Status Banner
@@ -584,7 +593,15 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
           "Track your current orders",
         );
       case 5:
-        return _placeholderPage("Chat", Icons.chat, "Message the store admin");
+        // Check if user is logged in for chat access
+        if (!isLoggedIn) {
+          return _buildLoginRequiredPage(
+            "Chat with Admin",
+            Icons.chat_bubble,
+            "Please log in to chat with our support team",
+          );
+        }
+        return const CustomerChat();
       default:
         return _placeholderPage(
           "Dashboard",
@@ -638,6 +655,163 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Login Required Page
+  Widget _buildLoginRequiredPage(String title, IconData icon, String message) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 500),
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Lock Icon
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFFFF6F00).withOpacity(0.2),
+                    const Color(0xFFFFC107).withOpacity(0.1),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFFF6F00).withOpacity(0.3),
+                  width: 3,
+                ),
+              ),
+              child: Icon(
+                Icons.lock_outline,
+                size: 80,
+                color: const Color(0xFFFF6F00),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Title
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF212121),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // Message
+            Text(
+              message,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 40),
+
+            // Login Button
+            Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF6F00), Color(0xFFFFC107)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF6F00).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    // Navigate back to shop page
+                    setState(() {
+                      selectedIndex = 0;
+                    });
+
+                    // Show login prompt in snackbar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Colors.white),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Please use the Login button in the sidebar to access $title',
+                                style: const TextStyle(fontSize: 15),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: const Color(0xFFFF6F00),
+                        duration: const Duration(seconds: 5),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        action: SnackBarAction(
+                          label: 'OK',
+                          textColor: Colors.white,
+                          onPressed: () {},
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: const Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.login, color: Colors.white, size: 24),
+                        SizedBox(width: 12),
+                        Text(
+                          'Go to Login',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Info Text
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.info, size: 16, color: Colors.grey[500]),
+                const SizedBox(width: 8),
+                Text(
+                  'Look for the Login button in the sidebar',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

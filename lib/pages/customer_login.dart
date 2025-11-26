@@ -551,7 +551,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     if (customerId.isNotEmpty) {
       html.window.localStorage['customerId'] = customerId;
       print("   ✅ Customer ID saved to localStorage");
-      
+
       // Verify it was saved
       final savedId = html.window.localStorage['customerId'];
       print("   🔍 Verification - Retrieved from localStorage: '$savedId'");

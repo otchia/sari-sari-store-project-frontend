@@ -5,6 +5,7 @@ import 'dart:html' as html;
 import '../widgets/admin_inventory.dart';
 import '../widgets/admin_store_settings.dart';
 import '../widgets/admin_orders.dart';
+import '../widgets/admin_chat.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   final String storeName;
@@ -557,7 +558,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       case 2:
         return const AdminInventory();
       case 3:
-        return _placeholderPage("Chat", Icons.chat_bubble_rounded);
+        return const AdminChat();
       case 4:
         return _placeholderPage("Analytics", Icons.analytics_rounded);
       default:
