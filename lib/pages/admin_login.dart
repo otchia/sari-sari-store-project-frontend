@@ -138,8 +138,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           SnackBar(
             content: Text("Error: ${res['message'] ?? 'Invalid credentials'}"),
             backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
           ),
         );
       }
@@ -148,8 +146,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         SnackBar(
           content: Text("Network error: $e"),
           backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
         ),
       );
     }

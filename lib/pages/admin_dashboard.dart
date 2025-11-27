@@ -90,8 +90,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
               backgroundColor: Colors.green,
               duration: Duration(milliseconds: 1500),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
             ),
           );
         }
