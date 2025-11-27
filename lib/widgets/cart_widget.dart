@@ -666,7 +666,7 @@ class _CartWidgetState extends State<CartWidget> {
 
                                       // Process order
                                       setDialogState(() => isProcessing = true);
-                                      final success = await _processCheckout(
+                                      final orderData = await _processCheckout(
                                         userId,
                                         deliveryType,
                                         paymentMethod,
@@ -679,9 +679,13 @@ class _CartWidgetState extends State<CartWidget> {
                                         () => isProcessing = false,
                                       );
 
-                                      // Only close dialog if checkout was successful
-                                      if (mounted && success) {
-                                        Navigator.pop(context);
+                                      // Close checkout dialog first, then show success modal
+                                      if (mounted && orderData != null) {
+                                        Navigator.pop(
+                                          context,
+                                        ); // Close checkout dialog
+                                        // Show success modal after dialog is closed
+                                        _showOrderSuccessModal(orderData);
                                       }
                                     },
                               icon: isProcessing
@@ -728,7 +732,7 @@ class _CartWidgetState extends State<CartWidget> {
   }
 
   // ================= PROCESS CHECKOUT =================
-  Future<bool> _processCheckout(
+  Future<Map<String, dynamic>?> _processCheckout(
     String userId,
     String deliveryType,
     String paymentMethod,
@@ -778,12 +782,8 @@ class _CartWidgetState extends State<CartWidget> {
         fetchCart();
         cartNotifier.value++;
 
-        // Show success modal
-        if (mounted) {
-          _showOrderSuccessModal(decoded['order']);
-        }
-
-        return true; // Return success
+        // Return order data for success modal
+        return decoded['order']; // Return order data
       } else {
         print("❌ Order failed with status: ${response.statusCode}");
         print("   Full error response: ${response.body}");
@@ -808,7 +808,7 @@ class _CartWidgetState extends State<CartWidget> {
           );
         }
 
-        return false; // Return failure
+        return null; // Return failure
       }
     } catch (e) {
       print("❌ Error during checkout: $e");
@@ -824,7 +824,7 @@ class _CartWidgetState extends State<CartWidget> {
         );
       }
 
-      return false; // Return failure
+      return null; // Return failure
     }
   }
 
@@ -1450,7 +1450,7 @@ class _CartWidgetState extends State<CartWidget> {
   }
 
   // ================= ORDER SUCCESS MODAL =================
-  void _showOrderSuccessModal(dynamic order) {
+  void _showOrderSuccessModal(dynamic order) async {
     final orderId = order['_id']?.toString() ?? order['id']?.toString() ?? '';
     final deliveryType = order['deliveryType'] ?? 'pickup';
     final paymentMethod = order['paymentMethod'] ?? '';
@@ -1572,31 +1572,6 @@ class _CartWidgetState extends State<CartWidget> {
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Close the success modal
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFC107),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 48,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "View Orders",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -1606,6 +1581,12 @@ class _CartWidgetState extends State<CartWidget> {
         );
       },
     );
+
+    // Auto-dismiss after 5 seconds
+    await Future.delayed(const Duration(seconds: 5));
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _showDeleteConfirmation(String productId, String productName) {
