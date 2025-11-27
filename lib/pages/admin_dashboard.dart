@@ -90,6 +90,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
               backgroundColor: Colors.green,
               duration: Duration(milliseconds: 1500),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
             ),
           );
         }
@@ -246,14 +248,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     _buildNavButton(i, menuItems[i]),
                   const SizedBox(height: 20),
                   const Divider(color: Colors.white24, thickness: 1),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
+
+                  // Logout Button (Moved here)
+                  _buildLogoutButton(),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
-
-          // Logout Button
-          _buildLogoutSection(),
         ],
       ),
     );
@@ -332,16 +335,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildLogoutSection() {
+  Widget _buildLogoutButton() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.15),
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),

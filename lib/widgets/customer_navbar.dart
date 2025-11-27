@@ -62,14 +62,15 @@ class CustomerSidebar extends StatelessWidget {
                   ...menuItems.map((item) => _buildNavItem(item)),
                   const SizedBox(height: 20),
                   const Divider(color: Colors.white38, thickness: 1),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
+                  
+                  // Login/Account/Logout Section (Moved here)
+                  _buildAuthSection(context),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
-
-          // Bottom Section (Login/Account/Logout)
-          _buildBottomSection(context),
         ],
       ),
     );
@@ -266,16 +267,17 @@ class CustomerSidebar extends StatelessWidget {
     }
   }
 
-  Widget _buildBottomSection(BuildContext context) {
+  Widget _buildAuthSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.1),
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
-            offset: const Offset(0, -2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -322,6 +324,8 @@ class CustomerSidebar extends StatelessWidget {
                         const SnackBar(
                           content: Text("Account Settings coming soon!"),
                           duration: Duration(seconds: 2),
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
                         ),
                       );
                     },

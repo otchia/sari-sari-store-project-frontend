@@ -6,6 +6,7 @@ import '../widgets/customer_chat.dart';
 import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'login_page.dart';
 
 class CustomerDashboardPage extends StatefulWidget {
   final String customerName;
@@ -736,40 +737,43 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () {
-                    // Navigate back to shop page
-                    setState(() {
-                      selectedIndex = 0;
-                    });
-
-                    // Show login prompt in snackbar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.info_outline, color: Colors.white),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Please use the Login button in the sidebar to access $title',
-                                style: const TextStyle(fontSize: 15),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFFFF6F00),
-                        duration: const Duration(seconds: 5),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        action: SnackBarAction(
-                          label: 'OK',
-                          textColor: Colors.white,
-                          onPressed: () {},
-                        ),
+                  onTap: () async {
+                    // Navigate to login page
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
                       ),
                     );
+                    
+                    // If user successfully logged in, update the state
+                    if (result == true && mounted) {
+                      setState(() {
+                        isLoggedIn = html.window.localStorage.containsKey('customerId');
+                      });
+                      
+                      // Show success message
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.white),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Successfully logged in!',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                            behavior: SnackBarBehavior.floating,
+                            margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
+                          ),
+                        );
+                      }
+                    }
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: const Center(
