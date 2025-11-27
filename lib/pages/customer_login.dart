@@ -110,13 +110,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(
-        const SnackBar(
-          content: Text("All fields are required"),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
-        ),
-      );
+      ).showSnackBar(const SnackBar(content: Text("All fields are required")));
       return;
     }
 
@@ -152,8 +146,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
           SnackBar(
             content: Text(res["message"] ?? "Invalid credentials"),
             backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
           ),
         );
       }
@@ -163,8 +155,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         SnackBar(
           content: Text("Network error: $e"),
           backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
         ),
       );
     }
@@ -210,13 +200,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         setState(() => loading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(
-          const SnackBar(
-            content: Text("Google sign-in failed"),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
-          ),
-        );
+        ).showSnackBar(const SnackBar(content: Text("Google sign-in failed")));
         return;
       }
 
@@ -233,11 +217,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         print("❌ Email is empty");
         setState(() => loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Google account has no email"),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
-          ),
+          const SnackBar(content: Text("Google account has no email")),
         );
         return;
       }
@@ -310,8 +290,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
             SnackBar(
               content: Text("Registration error: $errorMsg"),
               backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
             ),
           );
           return;
@@ -326,8 +304,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         SnackBar(
           content: Text("Login error: $errorMsg"),
           backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
         ),
       );
     } catch (e, stackTrace) {
@@ -339,8 +315,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
         SnackBar(
           content: Text("Google sign-in error: $e"),
           backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
         ),
       );
     }
@@ -415,8 +389,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
               ),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 5),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
             ),
           );
         }
@@ -431,8 +403,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
             const SnackBar(
               content: Text("Unable to verify store status. Please try again."),
               backgroundColor: Colors.orange,
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: 80, left: 20, right: 20),
             ),
           );
         }
@@ -448,8 +418,6 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
           SnackBar(
             content: Text("Connection error: $e"),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
           ),
         );
       }

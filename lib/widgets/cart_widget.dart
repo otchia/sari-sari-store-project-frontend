@@ -228,11 +228,19 @@ class _CartWidgetState extends State<CartWidget> {
                               ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: isProcessing
-                                ? null
-                                : () => Navigator.pop(context),
-                            icon: const Icon(Icons.close),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              onPressed: isProcessing
+                                  ? null
+                                  : () => Navigator.pop(context),
+                              icon: const Icon(Icons.close),
+                              color: Colors.grey[700],
+                              tooltip: 'Close',
+                            ),
                           ),
                         ],
                       ),
@@ -539,7 +547,7 @@ class _CartWidgetState extends State<CartWidget> {
 
                                       // Process order
                                       setDialogState(() => isProcessing = true);
-                                      await _processCheckout(
+                                      final success = await _processCheckout(
                                         userId,
                                         deliveryType,
                                         paymentMethod,
@@ -552,7 +560,8 @@ class _CartWidgetState extends State<CartWidget> {
                                         () => isProcessing = false,
                                       );
 
-                                      if (mounted) {
+                                      // Only close dialog if checkout was successful
+                                      if (mounted && success) {
                                         Navigator.pop(context);
                                       }
                                     },
@@ -600,7 +609,7 @@ class _CartWidgetState extends State<CartWidget> {
   }
 
   // ================= PROCESS CHECKOUT =================
-  Future<void> _processCheckout(
+  Future<bool> _processCheckout(
     String userId,
     String deliveryType,
     String paymentMethod,
@@ -654,6 +663,8 @@ class _CartWidgetState extends State<CartWidget> {
         if (mounted) {
           _showOrderSuccessModal(decoded['order']);
         }
+        
+        return true; // Return success
       } else {
         print("❌ Order failed with status: ${response.statusCode}");
         print("   Full error response: ${response.body}");
@@ -672,18 +683,29 @@ class _CartWidgetState extends State<CartWidget> {
               ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
             ),
           );
         }
+        
+        return false; // Return failure
       }
     } catch (e) {
       print("❌ Error during checkout: $e");
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
+          ),
         );
       }
+      
+      return false; // Return failure
     }
   }
 
@@ -1383,7 +1405,10 @@ class _CartWidgetState extends State<CartWidget> {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          // Close the success modal
+                          Navigator.pop(context);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFFC107),
                           foregroundColor: Colors.white,

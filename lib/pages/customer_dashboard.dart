@@ -3,6 +3,8 @@ import 'package:sarisite/widgets/customer_shop.dart';
 import '../widgets/customer_navbar.dart';
 import '../widgets/cart_widget.dart';
 import '../widgets/customer_chat.dart';
+import '../widgets/customer_purchase_history.dart';
+import '../widgets/customer_order_status.dart';
 import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -582,16 +584,71 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
           "Your favorite items will appear here",
         );
       case 3:
-        return _placeholderPage(
-          "Purchase History",
-          Icons.history,
-          "View all your past purchases",
-        );
+        // Check if user is logged in for purchase history access
+        if (!isLoggedIn) {
+          return _buildLoginRequiredPage(
+            "Purchase History",
+            Icons.history,
+            "Please log in to view your purchase history",
+          );
+        }
+        return const CustomerPurchaseHistory();
       case 4:
-        return _placeholderPage(
-          "Order Status",
-          Icons.local_shipping,
-          "Track your current orders",
+        // Check if user is logged in for order status access
+        if (!isLoggedIn) {
+          return _buildLoginRequiredPage(
+            "Order Status",
+            Icons.local_shipping,
+            "Please log in to track your orders",
+          );
+        }
+        return Column(
+          children: [
+            // Delivery Status Banner
+            if (!loadingStoreStatus && !isDeliveryActive)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade100, Colors.orange.shade50],
+                  ),
+                  border: Border(
+                    bottom: BorderSide(color: Colors.orange.shade300, width: 2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.orange.shade800),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Delivery Service Currently Unavailable",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Existing delivery orders will still be processed",
+                            style: TextStyle(
+                              color: Colors.orange.shade800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Order Status Content
+            const Expanded(child: CustomerOrderStatus()),
+          ],
         );
       case 5:
         // Check if user is logged in for chat access
