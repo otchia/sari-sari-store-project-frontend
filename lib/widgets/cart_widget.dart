@@ -195,6 +195,25 @@ class _CartWidgetState extends State<CartWidget> {
       return;
     }
 
+    // Check if any item quantity exceeds stock
+    final bool hasExceededStock = cartItems.any((item) {
+      final stock = item['productId']['stock'] ?? 0;
+      final qty = item['quantity'] ?? 0;
+      return qty > stock;
+    });
+
+    if (hasExceededStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Some items exceed available stock. Please adjust quantities.",
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final userId = html.window.localStorage['customerId'];
     if (userId == null || userId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -866,21 +885,21 @@ class _CartWidgetState extends State<CartWidget> {
         // Delivery Status Banner
         if (!loadingDeliveryStatus && !isDeliveryAvailable)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.orange.shade50,
             child: Row(
               children: [
                 Icon(
                   Icons.info_outline,
                   color: Colors.orange.shade700,
-                  size: 20,
+                  size: 16,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     "Delivery is currently unavailable. Only pickup orders are accepted.",
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 11,
                       color: Colors.orange.shade900,
                       fontWeight: FontWeight.w500,
                     ),
@@ -896,7 +915,7 @@ class _CartWidgetState extends State<CartWidget> {
         // Cart Items List
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
@@ -950,7 +969,7 @@ class _CartWidgetState extends State<CartWidget> {
 
   Widget _buildCartHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFFFC107).withOpacity(0.1),
         border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
@@ -958,20 +977,20 @@ class _CartWidgetState extends State<CartWidget> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFFFFC107), Color(0xFFFFB300)],
               ),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.shopping_cart,
               color: Colors.white,
-              size: 22,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -979,14 +998,14 @@ class _CartWidgetState extends State<CartWidget> {
                 const Text(
                   "Shopping Cart",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF212121),
                   ),
                 ),
                 Text(
                   "$totalItems ${totalItems == 1 ? 'item' : 'items'}",
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -1007,44 +1026,44 @@ class _CartWidgetState extends State<CartWidget> {
     final itemTotal = price * qty;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: outOfStock ? Colors.red[200]! : Colors.grey[200]!,
           width: outOfStock ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
             Container(
-              width: 110,
-              height: 110,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 color: Colors.grey[100],
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 child: image.isNotEmpty
                     ? Image.network(
                         image,
@@ -1052,16 +1071,17 @@ class _CartWidgetState extends State<CartWidget> {
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.image_not_supported,
                           color: Colors.grey,
+                          size: 40,
                         ),
                       )
                     : const Icon(
                         Icons.inventory_2,
-                        size: 50,
+                        size: 40,
                         color: Colors.grey,
                       ),
               ),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 12),
 
             // Product Details
             Expanded(
@@ -1071,19 +1091,53 @@ class _CartWidgetState extends State<CartWidget> {
                   Text(
                     name,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF212121),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "₱${price.toStringAsFixed(2)} each",
-                    style: TextStyle(fontSize: 15, color: Colors.grey[600]),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "₱${price.toStringAsFixed(2)} each",
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inventory_2,
+                            size: 12,
+                            color: stock <= 5
+                                ? Colors.orange
+                                : outOfStock
+                                ? Colors.red
+                                : Colors.grey[600],
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Stock: $stock',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: stock <= 5
+                                  ? Colors.orange
+                                  : outOfStock
+                                  ? Colors.red
+                                  : Colors.grey[600],
+                              fontWeight: stock <= 5 || outOfStock
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
 
                   // Quantity Controls
                   Row(
@@ -1091,41 +1145,98 @@ class _CartWidgetState extends State<CartWidget> {
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.remove, size: 20),
+                              icon: const Icon(Icons.remove, size: 16),
                               onPressed: qty > 1 && !outOfStock
                                   ? () =>
                                         updateQuantity(product['_id'], qty - 1)
                                   : null,
                               color: const Color(0xFFFF6F00),
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(6),
                               constraints: const BoxConstraints(),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              child: Text(
-                                qty.toString(),
+                            SizedBox(
+                              width: 40,
+                              height: 28,
+                              child: TextField(
+                                key: ValueKey('qty_${product['_id']}_$qty'),
+                                controller: TextEditingController.fromValue(
+                                  TextEditingValue(
+                                    text: qty.toString(),
+                                    selection: TextSelection.collapsed(
+                                      offset: qty.toString().length,
+                                    ),
+                                  ),
+                                ),
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                enabled: !outOfStock,
                                 style: const TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero,
+                                  isDense: true,
+                                ),
+                                onChanged: (value) {
+                                  final newQty = int.tryParse(value);
+                                  if (newQty != null && newQty > 0) {
+                                    if (newQty <= stock) {
+                                      updateQuantity(product['_id'], newQty);
+                                    } else {
+                                      // Clamp to stock limit
+                                      updateQuantity(product['_id'], stock);
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Only $stock items available",
+                                          ),
+                                          backgroundColor: Colors.orange,
+                                          duration: const Duration(seconds: 1),
+                                        ),
+                                      );
+                                    }
+                                  } else if (value.isEmpty) {
+                                    // Allow empty for editing, will reset on blur
+                                  } else {
+                                    // Invalid input, reset to current quantity
+                                    updateQuantity(product['_id'], qty);
+                                  }
+                                },
+                                onSubmitted: (value) {
+                                  final newQty = int.tryParse(value);
+                                  if (newQty == null || newQty < 1) {
+                                    // Reset to 1 if invalid
+                                    updateQuantity(product['_id'], 1);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Quantity must be at least 1",
+                                        ),
+                                        backgroundColor: Colors.orange,
+                                        duration: Duration(seconds: 1),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.add, size: 20),
+                              icon: const Icon(Icons.add, size: 16),
                               onPressed: !outOfStock && qty < stock
                                   ? () =>
                                         updateQuantity(product['_id'], qty + 1)
                                   : null,
                               color: const Color(0xFFFF6F00),
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(6),
                               constraints: const BoxConstraints(),
                             ),
                           ],
@@ -1136,7 +1247,7 @@ class _CartWidgetState extends State<CartWidget> {
                       Text(
                         "₱${itemTotal.toStringAsFixed(2)}",
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF4CAF50),
                         ),
@@ -1147,14 +1258,14 @@ class _CartWidgetState extends State<CartWidget> {
                   // Out of Stock Warning
                   if (outOfStock)
                     Container(
-                      margin: const EdgeInsets.only(top: 10),
+                      margin: const EdgeInsets.only(top: 6),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: 8,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: Colors.red[200]!),
                       ),
                       child: Row(
@@ -1162,16 +1273,49 @@ class _CartWidgetState extends State<CartWidget> {
                         children: [
                           Icon(
                             Icons.error_outline,
-                            size: 18,
+                            size: 14,
                             color: Colors.red[700],
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             "Out of Stock",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: Colors.red[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Quantity Exceeds Stock Warning
+                  if (!outOfStock && qty > stock)
+                    Container(
+                      margin: const EdgeInsets.only(top: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.orange[200]!),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 14,
+                            color: Colors.orange[700],
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Quantity exceeds stock! Only $stock available",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[700],
                             ),
                           ),
                         ],
@@ -1183,10 +1327,12 @@ class _CartWidgetState extends State<CartWidget> {
 
             // Delete Button
             IconButton(
-              icon: const Icon(Icons.delete_outline, size: 24),
+              icon: const Icon(Icons.delete_outline, size: 20),
               color: Colors.red[400],
               onPressed: () => _showDeleteConfirmation(product['_id'], name),
               tooltip: 'Remove item',
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(),
             ),
           ],
         ),
@@ -1198,6 +1344,11 @@ class _CartWidgetState extends State<CartWidget> {
     final bool hasOutOfStock = cartItems.any(
       (item) => (item['productId']['stock'] ?? 0) == 0,
     );
+    final bool hasExceededStock = cartItems.any((item) {
+      final stock = item['productId']['stock'] ?? 0;
+      final qty = item['quantity'] ?? 0;
+      return qty > stock;
+    });
     final tax = subtotal * 0.0; // Add tax if needed
     final shipping = 0.0; // Add shipping if needed
     final total = subtotal + tax + shipping;
@@ -1207,8 +1358,8 @@ class _CartWidgetState extends State<CartWidget> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
             offset: const Offset(0, -2),
           ),
         ],
@@ -1216,21 +1367,21 @@ class _CartWidgetState extends State<CartWidget> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Column(
               children: [
                 // Subtotal
                 _buildSummaryRow("Subtotal", subtotal, false),
                 if (tax > 0) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   _buildSummaryRow("Tax", tax, false),
                 ],
                 if (shipping > 0) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   _buildSummaryRow("Shipping", shipping, false),
                 ],
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
+                  padding: EdgeInsets.symmetric(vertical: 6),
                   child: Divider(thickness: 1),
                 ),
                 // Total
@@ -1242,11 +1393,11 @@ class _CartWidgetState extends State<CartWidget> {
           // Warning for out of stock
           if (hasOutOfStock)
             Container(
-              margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.red[50],
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: Colors.red[200]!),
               ),
               child: Row(
@@ -1254,15 +1405,47 @@ class _CartWidgetState extends State<CartWidget> {
                   Icon(
                     Icons.warning_amber_rounded,
                     color: Colors.red[700],
-                    size: 20,
+                    size: 18,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       "Remove out-of-stock items to proceed",
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         color: Colors.red[700],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Warning for exceeded stock
+          if (!hasOutOfStock && hasExceededStock)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange[700],
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Some items exceed available stock. Please adjust quantities.",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange[700],
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1273,16 +1456,16 @@ class _CartWidgetState extends State<CartWidget> {
 
           // Checkout Button
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 44,
               child: ElevatedButton.icon(
-                onPressed: hasOutOfStock ? null : checkout,
-                icon: const Icon(Icons.shopping_bag, size: 20),
+                onPressed: hasOutOfStock || hasExceededStock ? null : checkout,
+                icon: const Icon(Icons.shopping_bag, size: 18),
                 label: const Text(
                   "Proceed to Checkout",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFC107),
@@ -1290,7 +1473,7 @@ class _CartWidgetState extends State<CartWidget> {
                   disabledBackgroundColor: Colors.grey[300],
                   disabledForegroundColor: Colors.grey[600],
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 2,
                 ),
@@ -1309,7 +1492,7 @@ class _CartWidgetState extends State<CartWidget> {
         Text(
           label,
           style: TextStyle(
-            fontSize: isTotal ? 17 : 15,
+            fontSize: isTotal ? 15 : 13,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
             color: isTotal ? const Color(0xFF212121) : Colors.grey[700],
           ),
@@ -1317,7 +1500,7 @@ class _CartWidgetState extends State<CartWidget> {
         Text(
           "₱${amount.toStringAsFixed(2)}",
           style: TextStyle(
-            fontSize: isTotal ? 20 : 15,
+            fontSize: isTotal ? 17 : 13,
             fontWeight: FontWeight.bold,
             color: isTotal ? const Color(0xFF4CAF50) : Colors.grey[800],
           ),
@@ -1467,112 +1650,119 @@ class _CartWidgetState extends State<CartWidget> {
           child: Transform.scale(
             scale: 0.8 + (anim1.value * 0.2),
             child: Center(
-              child: Card(
-                color: Colors.white,
-                elevation: 10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade100,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.check_circle,
-                          color: Colors.green.shade700,
-                          size: 64,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Order Placed Successfully!",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      if (orderId.isNotEmpty)
-                        Text(
-                          "Order #${orderId.substring(orderId.length > 8 ? orderId.length - 8 : 0)}",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 360),
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                child: Card(
+                  color: Colors.white,
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade700,
+                            size: 48,
                           ),
                         ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Order Placed Successfully!",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF212121),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  deliveryType == "pickup"
-                                      ? Icons.store
-                                      : Icons.delivery_dining,
-                                  color: const Color(0xFFFF6F00),
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  deliveryType == "pickup"
-                                      ? "Pick-up Order"
-                                      : "Delivery Order",
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
+                        const SizedBox(height: 8),
+                        if (orderId.isNotEmpty)
+                          Text(
+                            "Order #${orderId.substring(orderId.length > 8 ? orderId.length - 8 : 0)}",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    deliveryType == "pickup"
+                                        ? Icons.store
+                                        : Icons.delivery_dining,
+                                    color: const Color(0xFFFF6F00),
+                                    size: 18,
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  paymentMethod == "gcash"
-                                      ? Icons.account_balance_wallet
-                                      : Icons.payments,
-                                  color: paymentMethod == "gcash"
-                                      ? Colors.blue
-                                      : Colors.green,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  paymentMethod == "gcash" ? "GCash" : "Cash",
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ],
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    deliveryType == "pickup"
+                                        ? "Pick-up Order"
+                                        : "Delivery Order",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    paymentMethod == "gcash"
+                                        ? Icons.account_balance_wallet
+                                        : Icons.payments,
+                                    color: paymentMethod == "gcash"
+                                        ? Colors.blue
+                                        : Colors.green,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    paymentMethod == "gcash" ? "GCash" : "Cash",
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        deliveryType == "pickup"
-                            ? "We'll notify you when your order is ready!"
-                            : "We'll notify you when your order is out for delivery!",
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        Text(
+                          deliveryType == "pickup"
+                              ? "We'll notify you when your order is ready!"
+                              : "We'll notify you when your order is out for delivery!",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

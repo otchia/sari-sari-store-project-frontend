@@ -313,7 +313,7 @@ class _AdminOrdersState extends State<AdminOrders>
         // Statistics Cards
         if (!loadingStats) _buildStatistics(),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
 
         // Tabs
         Container(
@@ -330,7 +330,10 @@ class _AdminOrdersState extends State<AdminOrders>
             ),
             labelColor: Colors.white,
             unselectedLabelColor: Colors.brown,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
             tabs: const [
               Tab(text: "All Orders"),
               Tab(text: "Pending"),
@@ -340,7 +343,7 @@ class _AdminOrdersState extends State<AdminOrders>
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
 
         // Orders List
         Expanded(
@@ -367,13 +370,13 @@ class _AdminOrdersState extends State<AdminOrders>
   // ================= STATISTICS CARDS =================
   Widget _buildStatistics() {
     return Container(
-      margin: const EdgeInsets.all(24),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
             _buildStatCard(
-              "Total Orders",
+              "Total",
               statistics['total']?.toString() ?? "0",
               Icons.shopping_bag,
               Colors.blue,
@@ -385,7 +388,7 @@ class _AdminOrdersState extends State<AdminOrders>
               Colors.orange,
             ),
             _buildStatCard(
-              "Ready/In Transit",
+              "In Transit",
               ((statistics['readyForPickup'] ?? 0) +
                       (statistics['outForDelivery'] ?? 0))
                   .toString(),
@@ -393,14 +396,14 @@ class _AdminOrdersState extends State<AdminOrders>
               Colors.purple,
             ),
             _buildStatCard(
-              "Completed",
+              "Done",
               statistics['completed']?.toString() ?? "0",
               Icons.check_circle,
               Colors.green,
             ),
             _buildStatCard(
               "Revenue",
-              "₱${(statistics['totalRevenue'] ?? 0).toStringAsFixed(2)}",
+              "₱${(statistics['totalRevenue'] ?? 0).toStringAsFixed(0)}",
               Icons.payments,
               Colors.teal,
             ),
@@ -417,42 +420,47 @@ class _AdminOrdersState extends State<AdminOrders>
     Color color,
   ) {
     return Container(
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(20),
-      width: 180,
+      margin: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      width: 120,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [color, color.withOpacity(0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 32),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: Colors.white, size: 20),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 11,
               color: Colors.white,
               fontWeight: FontWeight.w500,
             ),
@@ -503,14 +511,14 @@ class _AdminOrdersState extends State<AdminOrders>
     final items = order['items'] as List<dynamic>? ?? [];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
           // Order Header
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -611,7 +619,7 @@ class _AdminOrdersState extends State<AdminOrders>
 
           // Order Items
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
