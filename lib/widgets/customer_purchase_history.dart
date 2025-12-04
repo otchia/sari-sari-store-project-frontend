@@ -62,6 +62,9 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     if (loading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -77,11 +80,11 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
     return RefreshIndicator(
       onRefresh: fetchPurchaseHistory,
       child: ListView.builder(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         itemCount: purchases.length,
         itemBuilder: (context, index) {
           final purchase = purchases[index];
-          return _buildPurchaseCard(purchase);
+          return _buildPurchaseCard(purchase, isMobile: isMobile);
         },
       ),
     );
@@ -134,7 +137,7 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
     );
   }
 
-  Widget _buildPurchaseCard(dynamic purchase) {
+  Widget _buildPurchaseCard(dynamic purchase, {required bool isMobile}) {
     final orderId = purchase['_id'] ?? '';
     final items = purchase['items'] ?? [];
     final totalAmount = purchase['totalAmount'] ?? 0;
@@ -144,14 +147,14 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
     final completedAt = purchase['completedAt'] ?? purchase['updatedAt'] ?? '';
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => _showOrderDetails(purchase),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? 14 : 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -159,55 +162,55 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(isMobile ? 10 : 12),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFFFF6F00), Color(0xFFFFC107)],
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.shopping_bag,
                       color: Colors.white,
-                      size: 24,
+                      size: isMobile ? 20 : 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 12 : 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "Order #${orderId.substring(orderId.length > 8 ? orderId.length - 8 : 0)}",
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: isMobile ? 14 : 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF212121),
+                            color: const Color(0xFF212121),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: isMobile ? 2 : 4),
                         Text(
                           _formatDate(completedAt),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: isMobile ? 11 : 13,
                             color: Colors.grey[600],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  _buildStatusBadge(status),
+                  _buildStatusBadge(status, isMobile: isMobile),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 12 : 16),
               const Divider(),
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? 10 : 12),
 
               // Items Summary
               Text(
                 "${items.length} item${items.length != 1 ? 's' : ''}",
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[700],
                 ),
@@ -223,7 +226,7 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
                           child: Text(
                             "${item['quantity']}x ${item['productName'] ?? 'Item'}",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: isMobile ? 12 : 13,
                               color: Colors.grey[600],
                             ),
                           ),
@@ -237,14 +240,14 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
                   child: Text(
                     "... and ${items.length - 2} more item${items.length - 2 != 1 ? 's' : ''}",
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: isMobile ? 12 : 13,
                       color: Colors.grey[500],
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 12 : 16),
 
               // Bottom Row
               Row(
@@ -253,38 +256,38 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
                     deliveryType == 'delivery'
                         ? Icons.delivery_dining
                         : Icons.shopping_bag_outlined,
-                    size: 18,
+                    size: isMobile ? 16 : 18,
                     color: Colors.grey[600],
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: isMobile ? 4 : 6),
                   Text(
                     deliveryType == 'delivery' ? 'Delivery' : 'Pickup',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: isMobile ? 11 : 13,
                       color: Colors.grey[600],
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 12 : 16),
                   Icon(
                     Icons.payment,
-                    size: 18,
+                    size: isMobile ? 16 : 18,
                     color: Colors.grey[600],
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: isMobile ? 4 : 6),
                   Text(
                     paymentMethod.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: isMobile ? 11 : 13,
                       color: Colors.grey[600],
                     ),
                   ),
                   const Spacer(),
                   Text(
                     "₱${totalAmount.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: isMobile ? 16 : 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF6F00),
+                      color: const Color(0xFFFF6F00),
                     ),
                   ),
                 ],
@@ -296,7 +299,7 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(String status, {required bool isMobile}) {
     Color backgroundColor;
     Color textColor;
     String displayText;
@@ -324,15 +327,18 @@ class _CustomerPurchaseHistoryState extends State<CustomerPurchaseHistory> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 8 : 12,
+        vertical: isMobile ? 4 : 6,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
       ),
       child: Text(
         displayText,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: isMobile ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: textColor,
         ),

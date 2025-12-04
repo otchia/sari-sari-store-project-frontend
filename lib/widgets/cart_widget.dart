@@ -868,6 +868,9 @@ class _CartWidgetState extends State<CartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     if (loading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -910,12 +913,15 @@ class _CartWidgetState extends State<CartWidget> {
           ),
 
         // Cart Items Summary Header
-        _buildCartHeader(),
+        _buildCartHeader(isMobile),
 
         // Cart Items List
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 8 : 12,
+              vertical: isMobile ? 8 : 12,
+            ),
             child: ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
@@ -926,7 +932,7 @@ class _CartWidgetState extends State<CartWidget> {
         ),
 
         // Cart Summary & Checkout
-        _buildCartSummary(),
+        _buildCartSummary(isMobile),
       ],
     );
   }
@@ -967,9 +973,12 @@ class _CartWidgetState extends State<CartWidget> {
     );
   }
 
-  Widget _buildCartHeader() {
+  Widget _buildCartHeader(bool isMobile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 16,
+        vertical: isMobile ? 8 : 12,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFFFC107).withOpacity(0.1),
         border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
@@ -1024,6 +1033,8 @@ class _CartWidgetState extends State<CartWidget> {
     final stock = product['stock'] ?? 0;
     final bool outOfStock = stock == 0;
     final itemTotal = price * qty;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1043,14 +1054,14 @@ class _CartWidgetState extends State<CartWidget> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(isMobile ? 8 : 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
             Container(
-              width: 90,
-              height: 90,
+              width: isMobile ? 70 : 90,
+              height: isMobile ? 70 : 90,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 color: Colors.grey[100],
@@ -1081,7 +1092,7 @@ class _CartWidgetState extends State<CartWidget> {
                       ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isMobile ? 8 : 12),
 
             // Product Details
             Expanded(
@@ -1340,7 +1351,7 @@ class _CartWidgetState extends State<CartWidget> {
     );
   }
 
-  Widget _buildCartSummary() {
+  Widget _buildCartSummary(bool isMobile) {
     final bool hasOutOfStock = cartItems.any(
       (item) => (item['productId']['stock'] ?? 0) == 0,
     );
@@ -1367,7 +1378,12 @@ class _CartWidgetState extends State<CartWidget> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 16,
+              isMobile ? 8 : 12,
+              isMobile ? 12 : 16,
+              isMobile ? 6 : 8,
+            ),
             child: Column(
               children: [
                 // Subtotal

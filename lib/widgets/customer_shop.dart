@@ -141,9 +141,16 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
   }
 
   int _calculateCrossAxisCount(double width) {
-    if (width < 600) return 2;
-    if (width < 1024) return 3;
-    return 4;
+    if (width < 600) return 1;  // Mobile: 1 column
+    if (width < 900) return 2;  // Small tablets: 2 columns
+    if (width < 1200) return 3; // Tablets: 3 columns
+    return 4;                    // Desktop: 4 columns
+  }
+
+  double _calculateAspectRatio(double width) {
+    if (width < 400) return 0.68; // Taller cards on very small screens to fit content
+    if (width < 600) return 0.75; // Taller cards on mobile
+    return 0.62; // Desktop aspect ratio
   }
 
   @override
@@ -178,18 +185,20 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
 
     final width = MediaQuery.of(context).size.width;
     final crossAxisCount = _calculateCrossAxisCount(width);
+    final aspectRatio = _calculateAspectRatio(width);
+    final isMobile = width < 600;
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1400),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isMobile ? 8 : 16),
           child: GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
-              childAspectRatio: 0.62,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              childAspectRatio: aspectRatio,
+              crossAxisSpacing: isMobile ? 8 : 16,
+              mainAxisSpacing: isMobile ? 8 : 16,
             ),
             itemCount: filteredProducts.length,
             itemBuilder: (context, index) {
@@ -269,16 +278,17 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
     );
   }
 
-  Widget _buildProductCard(dynamic productData) {
-    final Map<String, dynamic> product = Map<String, dynamic>.from(productData);
-    final productId = (product['_id'] ?? '').toString();
+  Widget _buildProductCard(Map<String, dynamic> product) {
+    final productId = product['_id'] ?? '';
+    final name = product['name'] ?? 'Unknown';
+    final price = double.tryParse(product['price'].toString()) ?? 0;
+    final stock = int.tryParse(product['stock'].toString()) ?? 0;
     final imageUrl = (product['imageUrl'] ?? '').toString();
-    final name = (product['name'] ?? 'Unnamed Product').toString();
-    final stock = int.tryParse(product['stock']?.toString() ?? '0') ?? 0;
-    final price = double.tryParse(product['price']?.toString() ?? '0') ?? 0.0;
-    final qty = quantities[productId] ?? 1;
+    final lowStock = stock > 0 && stock <= 10;
     final outOfStock = stock <= 0;
-    final lowStock = stock > 0 && stock <= 5;
+    final qty = quantities[productId] ?? 1;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 400; // Ultra-small screens
 
     qtyControllers.putIfAbsent(
       productId,
@@ -396,7 +406,7 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
 
             // Product Details
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(1),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -404,7 +414,7 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                   // Name
                   Text(
                     name,
-                    maxLines: 2,
+                    maxLines: isVerySmall ? 1 : 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 14,
@@ -413,7 +423,7 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: isVerySmall ? 0 : 1),
 
                   // Price & Stock in one row
                   Row(
@@ -468,10 +478,10 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: isVerySmall ? 0 : 1),
 
-                  // Quantity Controls
-                  if (!outOfStock) ...[
+                  // Quantity Controls (hidden on very small screens to save space)
+                  if (!outOfStock && !isVerySmall) ...[ 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -539,13 +549,13 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 1),
                   ],
 
                   // Add to Cart Button
                   SizedBox(
                     width: double.infinity,
-                    height: 34,
+                    height: isVerySmall ? 18 : 22,
                     child: ElevatedButton.icon(
                       onPressed: outOfStock
                           ? null
@@ -559,12 +569,12 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                         outOfStock
                             ? Icons.remove_shopping_cart
                             : Icons.add_shopping_cart,
-                        size: 16,
+                        size: 13,
                       ),
                       label: Text(
                         outOfStock ? 'Out of Stock' : 'Add to Cart',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -579,7 +589,7 @@ class _CustomerShopFixedState extends State<CustomerShopFixed> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         elevation: outOfStock ? 0 : 2,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                       ),
                     ),
                   ),

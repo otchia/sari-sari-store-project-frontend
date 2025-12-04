@@ -8,6 +8,7 @@ class CustomerSidebar extends StatelessWidget {
   final bool isLoggedIn;
   final VoidCallback? onLoginSuccess;
   final VoidCallback? onLogout;
+  final bool isMobile;
 
   const CustomerSidebar({
     super.key,
@@ -17,6 +18,7 @@ class CustomerSidebar extends StatelessWidget {
     this.isLoggedIn = false,
     this.onLoginSuccess,
     this.onLogout,
+    this.isMobile = false,
   });
 
   final List<SidebarItem> menuItems = const [
@@ -30,13 +32,21 @@ class CustomerSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = _buildContent(context);
+    
+    if (isMobile) {
+      return Drawer(
+        child: content,
+      );
+    }
+    
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [const Color(0xFFFFC107), const Color(0xFFFFB300)],
+          colors: [Color(0xFFFFC107), Color(0xFFFFB300)],
         ),
         boxShadow: [
           BoxShadow(
@@ -45,6 +55,19 @@ class CustomerSidebar extends StatelessWidget {
             offset: const Offset(2, 0),
           ),
         ],
+      ),
+      child: content,
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFC107), Color(0xFFFFB300)],
+        ),
       ),
       child: Column(
         children: [

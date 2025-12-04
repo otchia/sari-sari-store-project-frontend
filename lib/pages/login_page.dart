@@ -6,17 +6,19 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 900;
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFFFFC107),
-              const Color(0xFFFFB300),
-              const Color(0xFFFF6F00),
+              Color(0xFFFFC107),
+              Color(0xFFFFB300),
+              Color(0xFFFF6F00),
             ],
           ),
         ),
@@ -25,7 +27,7 @@ class LoginPage extends StatelessWidget {
             children: [
               // Back Button
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 child: Row(
                   children: [
                     Container(
@@ -44,11 +46,16 @@ class LoginPage extends StatelessWidget {
               ),
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(32, 0, 32, 24),
+                padding: EdgeInsets.fromLTRB(
+                  isMobile ? 16 : 32,
+                  0,
+                  isMobile ? 16 : 32,
+                  isMobile ? 16 : 24,
+                ),
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(isMobile ? 12 : 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
@@ -60,20 +67,20 @@ class LoginPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.store,
-                        size: 52,
-                        color: Color(0xFFFF6F00),
+                        size: isMobile ? 40 : 52,
+                        color: const Color(0xFFFF6F00),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: isMobile ? 12 : 16),
+                    Text(
                       "Sari-Sari Store",
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: isMobile ? 24 : 32,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        shadows: [
+                        shadows: const [
                           Shadow(
                             color: Colors.black26,
                             offset: Offset(0, 4),
@@ -82,11 +89,11 @@ class LoginPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: isMobile ? 4 : 6),
                     Text(
                       "Choose your account type",
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: isMobile ? 14 : 18,
                         color: Colors.white.withOpacity(0.9),
                         fontWeight: FontWeight.w500,
                       ),
@@ -100,28 +107,31 @@ class LoginPage extends StatelessWidget {
                 child: Center(
                   child: Container(
                     width: screenWidth > 900 ? 900 : screenWidth * 0.95,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24),
                     child: screenWidth > 700
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Expanded(child: _buildCustomerCard(context)),
+                              Expanded(child: _buildCustomerCard(context, isMobile: false)),
                               const SizedBox(width: 30),
-                              Expanded(child: _buildAdminCard(context)),
+                              Expanded(child: _buildAdminCard(context, isMobile: false)),
                             ],
                           )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildCustomerCard(context),
-                              const SizedBox(height: 20),
-                              _buildAdminCard(context),
-                            ],
+                        : SingleChildScrollView(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildCustomerCard(context, isMobile: isMobile),
+                                SizedBox(height: isMobile ? 16 : 20),
+                                _buildAdminCard(context, isMobile: isMobile),
+                                SizedBox(height: isMobile ? 16 : 20),
+                              ],
+                            ),
                           ),
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: isMobile ? 16 : 40),
             ],
           ),
         ),
@@ -129,7 +139,7 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomerCard(BuildContext context) {
+  Widget _buildCustomerCard(BuildContext context, {required bool isMobile}) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Card(
@@ -145,12 +155,12 @@ class LoginPage extends StatelessWidget {
               colors: [Colors.white, Colors.orange[50]!],
             ),
           ),
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(isMobile ? 20 : 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(18),
+                padding: EdgeInsets.all(isMobile ? 14 : 18),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFFFC107), Color(0xFFFF6F00)],
@@ -164,43 +174,46 @@ class LoginPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shopping_bag,
-                  size: 46,
+                  size: isMobile ? 36 : 46,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text(
+              SizedBox(height: isMobile ? 16 : 20),
+              Text(
                 "Customer Portal",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: isMobile ? 20 : 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
+                  color: const Color(0xFF212121),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: isMobile ? 8 : 10),
               Text(
                 "Start shopping and track your orders with your personal account",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   color: Colors.grey[700],
                   height: 1.3,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: isMobile ? 16 : 20),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: isMobile ? 48 : 50,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pushNamed(context, '/customer-login');
                   },
-                  icon: const Icon(Icons.arrow_forward, size: 22),
-                  label: const Text(
+                  icon: Icon(Icons.arrow_forward, size: isMobile ? 20 : 22),
+                  label: Text(
                     "Continue as Customer",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isMobile ? 15 : 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFC107),
@@ -220,7 +233,7 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminCard(BuildContext context) {
+  Widget _buildAdminCard(BuildContext context, {required bool isMobile}) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Card(
@@ -236,12 +249,12 @@ class LoginPage extends StatelessWidget {
               colors: [Colors.white, Colors.red[50]!],
             ),
           ),
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(isMobile ? 20 : 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(18),
+                padding: EdgeInsets.all(isMobile ? 14 : 18),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Colors.redAccent, Colors.red],
@@ -255,43 +268,46 @@ class LoginPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.admin_panel_settings,
-                  size: 46,
+                  size: isMobile ? 36 : 46,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text(
+              SizedBox(height: isMobile ? 16 : 20),
+              Text(
                 "Admin Portal",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: isMobile ? 20 : 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
+                  color: const Color(0xFF212121),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: isMobile ? 8 : 10),
               Text(
                 "Manage your store, products, inventory, and monitor all activities",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   color: Colors.grey[700],
                   height: 1.3,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: isMobile ? 16 : 20),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: isMobile ? 48 : 50,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pushNamed(context, '/admin-login');
                   },
-                  icon: const Icon(Icons.arrow_forward, size: 22),
-                  label: const Text(
+                  icon: Icon(Icons.arrow_forward, size: isMobile ? 20 : 22),
+                  label: Text(
                     "Continue as Admin",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isMobile ? 15 : 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,

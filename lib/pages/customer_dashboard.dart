@@ -185,42 +185,73 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+      // Drawer for mobile
+      drawer: isMobile
+          ? CustomerSidebar(
+              storeName: widget.storeName,
+              selectedIndex: selectedIndex,
+              onIndexChanged: (index) {
+                setState(() {
+                  selectedIndex = index;
+                });
+                Navigator.pop(context); // Close drawer after selection
+              },
+              isLoggedIn: isLoggedIn,
+              onLoginSuccess: () {
+                setState(() {
+                  isLoggedIn = true;
+                });
+              },
+              onLogout: () {
+                html.window.localStorage.remove('customerId');
+                setState(() {
+                  isLoggedIn = false;
+                });
+              },
+              isMobile: true,
+            )
+          : null,
       body: Row(
         children: [
-          // LEFT SIDEBAR (NEW NAVBAR)
-          CustomerSidebar(
-            storeName: widget.storeName,
-            selectedIndex: selectedIndex,
-            onIndexChanged: (index) {
-              setState(() {
-                selectedIndex = index;
-              });
-            },
-            isLoggedIn: isLoggedIn,
-            onLoginSuccess: () {
-              setState(() {
-                isLoggedIn = true;
-              });
-            },
-            onLogout: () {
-              html.window.localStorage.remove('customerId');
-              setState(() {
-                isLoggedIn = false;
-              });
-            },
-          ),
+          // LEFT SIDEBAR (DESKTOP ONLY)
+          if (!isMobile)
+            CustomerSidebar(
+              storeName: widget.storeName,
+              selectedIndex: selectedIndex,
+              onIndexChanged: (index) {
+                setState(() {
+                  selectedIndex = index;
+                });
+              },
+              isLoggedIn: isLoggedIn,
+              onLoginSuccess: () {
+                setState(() {
+                  isLoggedIn = true;
+                });
+              },
+              onLogout: () {
+                html.window.localStorage.remove('customerId');
+                setState(() {
+                  isLoggedIn = false;
+                });
+              },
+              isMobile: false,
+            ),
 
           // RIGHT SIDE CONTENT
           Expanded(
             child: Column(
               children: [
                 // TOP BAR WITH SEARCH
-                _buildTopBar(),
+                _buildTopBar(isMobile),
 
                 // MAIN CONTENT AREA
-                Expanded(child: _buildPageContent()),
+                Expanded(child: _buildPageContent(isMobile)),
               ],
             ),
           ),
@@ -229,9 +260,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(bool isMobile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 16 : 32,
+        vertical: isMobile ? 12 : 20,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -242,165 +276,333 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Page Title
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getPageTitle(),
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
-                  ),
-                ),
-                if (isLoggedIn)
-                  Text(
-                    'Welcome back, ${widget.customerName}!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 24),
-
-          // Search Bar (only show on Shop page)
-          if (selectedIndex == 0) ...[
-            Expanded(
-              flex: 3,
-              child: Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: "Search products...",
-                    hintStyle: TextStyle(color: Colors.grey[500]),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.grey[600],
-                      size: 24,
-                    ),
-                    suffixIcon: searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey[600]),
-                            onPressed: () {
-                              setState(() {
-                                searchQuery = "";
-                              });
-                            },
-                          )
-                        : null,
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-
-            // Category Filter Button
-            Container(
-              height: 50,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFC107), Color(0xFFFFB300)],
-                ),
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFFC107).withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: _showCategoryDialog,
-                  borderRadius: BorderRadius.circular(25),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.filter_list,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          selectedCategory,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.arrow_drop_down, color: Colors.white),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-
-          // Store Status Badges
-          const SizedBox(width: 16),
-          if (!loadingStoreStatus) ...[
-            _buildStatusBadge(
-              "Physical Store",
-              isPhysicalOpen,
-              Icons.store_mall_directory,
-            ),
-            const SizedBox(width: 8),
-            _buildStatusBadge("Online", isOnlineOpen, Icons.shopping_cart),
-            const SizedBox(width: 8),
-            _buildStatusBadge(
-              "Delivery",
-              isDeliveryActive,
-              Icons.delivery_dining,
-            ),
-          ] else
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-        ],
-      ),
+      child: isMobile ? _buildMobileTopBar() : _buildDesktopTopBar(),
     );
   }
 
-  Widget _buildStatusBadge(String label, bool isActive, IconData icon) {
+  Widget _buildMobileTopBar() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Hamburger menu and title row
+        Row(
+          children: [
+            // Hamburger Menu Button
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu, size: 28),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                color: const Color(0xFFFF6F00),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Page Title
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _getPageTitle(),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF212121),
+                    ),
+                  ),
+                  if (isLoggedIn)
+                    Text(
+                      widget.customerName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        // Search bar for Shop page
+        if (selectedIndex == 0) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: "Search...",
+                      hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
+                      suffixIcon: searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, color: Colors.grey[600], size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  searchQuery = "";
+                                });
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Category Filter Button
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFC107), Color(0xFFFFB300)],
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFC107).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _showCategoryDialog,
+                    borderRadius: BorderRadius.circular(22),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.filter_list,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            selectedCategory,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        // Store status badges (simplified for mobile)
+        if (!loadingStoreStatus) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              _buildStatusBadge("Physical", isPhysicalOpen, Icons.store, true),
+              _buildStatusBadge("Online", isOnlineOpen, Icons.shopping_cart, true),
+              _buildStatusBadge("Delivery", isDeliveryActive, Icons.delivery_dining, true),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDesktopTopBar() {
+    return Row(
+      children: [
+        // Page Title
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _getPageTitle(),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF212121),
+                ),
+              ),
+              if (isLoggedIn)
+                Text(
+                  'Welcome back, ${widget.customerName}!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        const SizedBox(width: 24),
+
+        // Search Bar (only show on Shop page)
+        if (selectedIndex == 0) ...[
+          Expanded(
+            flex: 3,
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: "Search products...",
+                  hintStyle: TextStyle(color: Colors.grey[500]),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.grey[600],
+                    size: 24,
+                  ),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Colors.grey[600]),
+                          onPressed: () {
+                            setState(() {
+                              searchQuery = "";
+                            });
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // Category Filter Button
+          Container(
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFC107), Color(0xFFFFB300)],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFC107).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _showCategoryDialog,
+                borderRadius: BorderRadius.circular(25),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.filter_list,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        selectedCategory,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+
+        // Store Status Badges
+        const SizedBox(width: 16),
+        if (!loadingStoreStatus) ...[
+          _buildStatusBadge(
+            "Physical Store",
+            isPhysicalOpen,
+            Icons.store_mall_directory,
+            false,
+          ),
+          const SizedBox(width: 8),
+          _buildStatusBadge("Online", isOnlineOpen, Icons.shopping_cart, false),
+          const SizedBox(width: 8),
+          _buildStatusBadge(
+            "Delivery",
+            isDeliveryActive,
+            Icons.delivery_dining,
+            false,
+          ),
+        ] else
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStatusBadge(String label, bool isActive, IconData icon, bool isMobile) {
     return Tooltip(
       message: isActive ? "$label is available" : "$label is closed",
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 12,
+          vertical: isMobile ? 4 : 8,
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -408,7 +610,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               isActive ? Colors.green.shade700 : Colors.grey.shade700,
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
           boxShadow: [
             BoxShadow(
               color: (isActive ? Colors.green : Colors.grey).withOpacity(0.3),
@@ -420,14 +622,14 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white, size: 16),
-            const SizedBox(width: 6),
+            Icon(icon, color: Colors.white, size: isMobile ? 14 : 16),
+            SizedBox(width: isMobile ? 4 : 6),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: isMobile ? 10 : 12,
               ),
             ),
           ],
@@ -436,9 +638,9 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     );
   }
 
-  Widget _buildPageContent() {
+  Widget _buildPageContent(bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 8 : 24),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -719,16 +921,19 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
 
   // Login Required Page
   Widget _buildLoginRequiredPage(String title, IconData icon, String message) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500),
-        padding: const EdgeInsets.all(40),
+        padding: EdgeInsets.all(isMobile ? 16 : 40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Lock Icon
             Container(
-              padding: const EdgeInsets.all(32),
+              padding: EdgeInsets.all(isMobile ? 20 : 32),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -744,40 +949,40 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               ),
               child: Icon(
                 Icons.lock_outline,
-                size: 80,
+                size: isMobile ? 60 : 80,
                 color: const Color(0xFFFF6F00),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: isMobile ? 20 : 32),
 
             // Title
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 28,
+              style: TextStyle(
+                fontSize: isMobile ? 22 : 28,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+                color: const Color(0xFF212121),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isMobile ? 12 : 16),
 
             // Message
             Text(
               message,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: isMobile ? 14 : 16,
                 color: Colors.grey[600],
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: isMobile ? 24 : 40),
 
             // Login Button
             Container(
               width: double.infinity,
-              height: 56,
+              height: isMobile ? 50 : 56,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF6F00), Color(0xFFFFC107)],
@@ -833,17 +1038,21 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     }
                   },
                   borderRadius: BorderRadius.circular(16),
-                  child: const Center(
+                  child: Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.login, color: Colors.white, size: 24),
-                        SizedBox(width: 12),
+                        Icon(
+                          Icons.login,
+                          color: Colors.white,
+                          size: isMobile ? 20 : 24,
+                        ),
+                        SizedBox(width: isMobile ? 8 : 12),
                         Text(
                           'Go to Login',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: isMobile ? 16 : 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -853,7 +1062,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isMobile ? 12 : 16),
 
             // Info Text
             Row(
@@ -861,12 +1070,14 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               children: [
                 Icon(Icons.info, size: 16, color: Colors.grey[500]),
                 const SizedBox(width: 8),
-                Text(
-                  'Look for the Login button in the sidebar',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
+                Flexible(
+                  child: Text(
+                    'Look for the Login button in the sidebar',
+                    style: TextStyle(
+                      fontSize: isMobile ? 12 : 13,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
               ],

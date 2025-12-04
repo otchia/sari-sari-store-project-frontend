@@ -625,43 +625,46 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
   // ---------------- Build UI ----------------
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [const Color(0xFFFFC107), const Color(0xFFFFE082)],
+            colors: [Color(0xFFFFC107), Color(0xFFFFE082)],
           ),
         ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 450),
-                margin: const EdgeInsets.all(24),
+                constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 450),
+                margin: EdgeInsets.all(isMobile ? 16 : 24),
                 child: Card(
-                  elevation: 20,
+                  elevation: isMobile ? 10 : 20,
                   shadowColor: Colors.black45,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(isMobile ? 20 : 28),
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(isMobile ? 20 : 28),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [Colors.white, Colors.orange[50]!],
                       ),
                     ),
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(isMobile ? 20 : 32),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Icon with gradient background
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: EdgeInsets.all(isMobile ? 18 : 24),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFFFC107), Color(0xFFFF6F00)],
@@ -675,13 +678,13 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                               ),
                             ],
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.shopping_bag,
-                            size: 50,
+                            size: isMobile ? 40 : 50,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: isMobile ? 16 : 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -694,23 +697,23 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                             const SizedBox(width: 40),
                           ],
                         ),
-                        const Text(
+                        Text(
                           "Welcome Back!",
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: isMobile ? 24 : 28,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF212121),
+                            color: const Color(0xFF212121),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: isMobile ? 6 : 8),
                         Text(
                           "Sign in to continue shopping",
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: isMobile ? 14 : 15,
                             color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: isMobile ? 24 : 32),
                         // Email field
                         TextField(
                           controller: emailController,
@@ -740,7 +743,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: isMobile ? 16 : 20),
                         // Password field
                         TextField(
                           controller: passwordController,
@@ -785,11 +788,11 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        SizedBox(height: isMobile ? 20 : 28),
                         // Email/Password login button
                         SizedBox(
                           width: double.infinity,
-                          height: 56,
+                          height: isMobile ? 50 : 56,
                           child: ElevatedButton(
                             onPressed: loading ? null : loginCustomer,
                             style: ElevatedButton.styleFrom(
@@ -811,16 +814,16 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                                       strokeWidth: 3,
                                     ),
                                   )
-                                : const Text(
+                                : Text(
                                     "Sign In",
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: isMobile ? 16 : 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: isMobile ? 20 : 24),
                         // Divider
                         Row(
                           children: [
@@ -840,10 +843,10 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                             Expanded(child: Divider(color: Colors.grey[400])),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: isMobile ? 20 : 24),
                         // Google sign-in button
                         _buildGoogleButton(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: isMobile ? 20 : 24),
                         // Register link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -852,7 +855,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                               "Don't have an account? ",
                               style: TextStyle(
                                 color: Colors.grey[700],
-                                fontSize: 15,
+                                fontSize: isMobile ? 14 : 15,
                               ),
                             ),
                             TextButton(
@@ -870,11 +873,11 @@ class _CustomerLoginPageState extends State<CustomerLoginPage>
                                   horizontal: 8,
                                 ),
                               ),
-                              child: const Text(
+                              child: Text(
                                 "Sign Up",
                                 style: TextStyle(
-                                  color: Color(0xFFFF6F00),
-                                  fontSize: 15,
+                                  color: const Color(0xFFFF6F00),
+                                  fontSize: isMobile ? 14 : 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

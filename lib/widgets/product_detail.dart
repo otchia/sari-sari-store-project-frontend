@@ -110,6 +110,8 @@ class _ProductDetailState extends State<ProductDetail> {
     final stock = int.tryParse(product['stock'].toString()) ?? 0;
     final name = product['name'] ?? 'Product';
     final description = product['description'] ?? 'No description provided.';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
 
     return Container(
       decoration: BoxDecoration(
@@ -120,7 +122,10 @@ class _ProductDetailState extends State<ProductDetail> {
         children: [
           // Header with close button
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 20,
+              vertical: isMobile ? 12 : 16,
+            ),
             decoration: BoxDecoration(
               color: Colors.orangeAccent.withOpacity(0.1),
               borderRadius: const BorderRadius.only(
@@ -157,7 +162,7 @@ class _ProductDetailState extends State<ProductDetail> {
                 final isWide = constraints.maxWidth > 600;
                 return SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.all(isMobile ? 10 : 24),
                     child: isWide
                         ? _buildWideLayout(
                             imageUrl,
